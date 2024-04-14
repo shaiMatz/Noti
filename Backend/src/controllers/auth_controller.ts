@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from "../models/user_model";
+import jwt from "jsonwebtoken";
 
 interface RequestBody {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
-
 }
 
 const register = async (req: Request, res: Response): Promise<void> => {
@@ -28,7 +28,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
   if (!email || !password || !firstName || !lastName) {
     return sendError(res);
   }
-console.log("user:", email, password, firstName, lastName);
+  console.log("user:", email, password, firstName, lastName);
   try {
     let salt = await bcrypt.genSalt(10);
     let hashedPassword = await bcrypt.hash(password, salt);
@@ -44,17 +44,8 @@ console.log("user:", email, password, firstName, lastName);
       .status(200)
       .json({ message: "User created successfully", data: newUser });
   } catch (error) {
-    return sendError(res, "failed to create user");
+    sendError(res, "failed to create user");
   }
-};
-
-const logout = (req: Request, res: Response) => {
-  res.status(200).json({ message: "Logout route" });
-  res.status(400).json({ message: "Logout failed" });
-};
-const login = (req: Request, res: Response) => {
-  res.status(200).json({ message: "Login route" });
-  res.status(400).json({ message: "Login failed" });
 };
 
 function sendError(res, msg = "Invalid request") {
@@ -64,9 +55,36 @@ function sendError(res, msg = "Invalid request") {
   });
 }
 
+const login = async (req: Request, res: Response): Promise<void> => {
+  {
+    const email = req.body.email;
+    const password = req.body.password;
+    if (!email || !password) {
+      return sendError(res, "bed email or password");
+    }
+    try {
+      let user = await User.findOne({ email: email });
+      if (!user) {
+        return sendError(res, "User not found");
+      }
+      let isMatch = user.isValidPassword(password);
+      if (!isMatch) {
+        return sendError(res, "Invalid credentials");
+      }
+      const accessToken = await jwt.sign(
+        { userId: user._id },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: process.env.ACCESS_TOKEN_LIFE }
+      );
+
+      res.status(200).send({ accessToken: accessToken });
+    } catch (error) {
+      return sendError(res);
+    }
+  }
+};
+
 export default {
   login,
   register,
-  logout,
 };
-
