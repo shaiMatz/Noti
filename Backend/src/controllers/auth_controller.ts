@@ -103,45 +103,64 @@ const refreshToken = async (
   let authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (token === null) res.sendStatus(401);
-
-  jwt.verify(
-    token,
-    process.env.REFRESH_TOKEN_SECRET as string,
-    async (err, userInfo) => {
-      if (err) return res.status(403).send(err.message);
-      if (!userInfo) return res.status(403).send("Invalid token payload.");
-
-      try {
-        const user = await User.findById(userInfo._id);
-        if (user === null) return res.status(403).send("Invalid request");
-
-        if (!user.tokens.includes(token)) {
-          user.tokens = []; // Invalidate all user tokens
-          await user.save();
-          return res.status(403).send("Invalid request");
-        }
-
-        const accessToken = await jwt.sign(
-          { _id: user._id },
-          process.env.ACCESS_TOKEN_SECRET as string,
-          { expiresIn: process.env.JWT_TOKEN_EXPIRATION }
-        );
-
-        const refreshToken = await jwt.sign(
-          { _id: user._id },
-          process.env.REFRESH_TOKEN_SECRET as string
-        );
-
-        // Replace the old token with the new refresh token in the user's tokens array
-        user.tokens[user.tokens.indexOf(token)] = refreshToken;
-        await user.save();
-
-        res.status(200).send({ accessToken, refreshToken });
-      } catch (err) {
-        res.status(403).send(err.message);
-      }
+  console.log("Token:", token);
+  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, userInfo) => {
+    if (err) {
+      console.error('Token verification error:', err);
+      return res.status(403).send(err.message + "Invalid token");
     }
-  );
+    if (!userInfo) {
+      console.log("Invalid token payload.");
+      return res.status(403).send("Invalid token payload.");
+    }
+    try {
+      console.log("User info:", userInfo);
+      if (!userInfo.userId) {
+        console.log("there is no user id in the token payload");
+        return res.status(403).send("Invalid token payload.");
+      }
+      const user = await User.findById(userInfo.userId);
+      if (!user ) {
+        console.log("user not found ");
+        return res.status(403).send("Invalid request");
+      }
+      else if(user.tokens.length === 0){
+        console.log("No tokens found for user");
+        return res.status(403).send("No tokens found for user");
+      }
+      if (!user.tokens.includes(token)) {
+        user.tokens = []; // Invalidate all user tokens
+        await user.save();
+        console.log("Token not in user's list");
+        return res.status(403).send(" Token not in user's list");
+      }
+
+      const accessToken = await jwt.sign(
+        { _id: user._id },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: process.env.ACCESS_TOKEN_LIFE }
+      );
+
+      const refreshToken = await jwt.sign(
+        { _id: user._id },
+        process.env.REFRESH_TOKEN_SECRET
+      );
+
+      // Replace the old token with the new one
+      const tokenIndex = user.tokens.indexOf(token);
+      if (tokenIndex !== -1) {
+        user.tokens[tokenIndex] = refreshToken;
+      } else {
+        user.tokens.push(refreshToken); // If for some reason the token isn't found, add the new one
+      }
+      await user.save();
+
+      res.status(200).send({ accessToken, refreshToken: refreshToken }); 
+    } catch (err) {
+      console.error('Error saving the user:', err);
+      res.status(403).send(err.message);
+    }
+  });
 };
 
 const logout = async (req: Request, res: Response): Promise<void> => {
