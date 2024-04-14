@@ -1,1 +1,17 @@
+
 GET http://localhost:3000
+
+
+###
+POST http://localhost:3000/posts
+Content-Type: application/json
+
+{
+   "title": "post",
+   "content": "This is a post"
+}
+
+###
+
+GET http://localhost:3000/posts/66156d39b01a37e30a063b3d
+
