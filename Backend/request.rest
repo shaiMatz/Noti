@@ -7,11 +7,27 @@ POST http://localhost:3000/posts
 Content-Type: application/json
 
 {
-   "title": "post",
-   "content": "This is a post"
+   "content": "Hello World",
+   "userId": "5f3b3b3b7abc123456789012",
+   "image": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+   "location": "Tel Aviv"
+
+
 }
 
 ###
 
-GET http://localhost:3000/posts/66156d39b01a37e30a063b3d
+GET http://localhost:3000/posts/
+
+
+###
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+   "email": "shai@gmail.com",
+   "password": "123456",
+   "firstName": "Shai",
+   "lastName": "Reznik"
+}
 
