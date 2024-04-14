@@ -10,13 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 class BaseController {
-    constructor(model) {
-        this.model = model;
+    constructor(itemModel) {
+        this.itemModel = itemModel;
     }
     post(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log(req.body);
-            const obj = new this.model(req.body);
+            const obj = new this.itemModel(req.body);
             try {
                 const savedObj = yield obj.save();
                 res.status(201).json(savedObj);
@@ -28,6 +28,5 @@ class BaseController {
         });
     }
 }
-const createController = (model) => new BaseController(model);
-exports.default = createController;
+exports.default = BaseController;
 //# sourceMappingURL=base_controller.js.map

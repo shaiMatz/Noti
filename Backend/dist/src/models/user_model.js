@@ -62,6 +62,7 @@ const userSchema = new mongoose_1.Schema({
     profilePicture: {
         type: String,
         default: "",
+        required: false,
     },
     level: {
         type: Number,

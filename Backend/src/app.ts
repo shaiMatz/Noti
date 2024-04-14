@@ -18,7 +18,7 @@ const initApp = () => {
             app.use(bodyParser.json());
             app.use(bodyParser.urlencoded({ extended: true }));
             app.use("/auth", authRoute); 
-            app.use("/posts", postRoute);
+            app.use("/post", postRoute);
             resolve(app);
         })
     });

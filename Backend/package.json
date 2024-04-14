@@ -4,7 +4,7 @@
   "description": "2024 backend",
   "main": "app.js",
   "scripts": {
-    "test": "tsc && jest --detectOpenHandles --forceExit",
+    "test": "tsc && jest --coverage --runInBand --detectOpenHandles --forceExit",
     "start": "tsc && node dist/Server.js",
     "lint": "eslint . --ext .ts",
     "devstart": "nodemon ./src/Server.ts"
