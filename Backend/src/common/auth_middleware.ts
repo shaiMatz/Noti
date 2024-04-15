@@ -34,7 +34,7 @@ const authenticate = async (
     );
   } catch (error) {
     // Log the error or handle it as per your error-handling logic
-    console.error('Authentication Error:', error);
+    console.error("Authentication Error:", error);
     res.sendStatus(500); // Internal Server Error
   }
 };

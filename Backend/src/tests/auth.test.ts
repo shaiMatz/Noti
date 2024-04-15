@@ -42,8 +42,7 @@ afterAll(async () => {
 
 describe("User Auth Test", () => {
   test("Register", async () => {
-    const res = await request(app)
-    .post("/auth/register").send(user);
+    const res = await request(app).post("/auth/register").send(user);
     expect(res.statusCode).toEqual(200);
   });
 
@@ -62,7 +61,7 @@ describe("User Auth Test", () => {
   test("get post- check autorazation", async () => {
     const res = await request(app)
       .get("/post")
-      .set({ Authorization: "JWT " + user.accessToken });
+      .set("authorization", `JWT ${user.accessToken}`)
     expect(res.statusCode).toEqual(200);
   });
 
@@ -70,17 +69,25 @@ describe("User Auth Test", () => {
     let wrongToken = user.accessToken + "1";
     const res = await request(app)
       .get("/post")
-      .set({ Authorization: "JWT " + wrongToken });
+      .set({ authorization: "JWT " + wrongToken });
     expect(res.statusCode).not.toEqual(200);
   });
 
- 
+  test("get post- timeout", async () => {
+    console.log("Timeout test");
+    await new Promise((r) => setTimeout(r, 6 * 1000 + 300));
+    const res = await request(app)
+      .get("/post")
+      .set("authorization", `JWT ${user.accessToken}`)
+    expect(res.statusCode).not.toEqual(200);
+  });
+
   test("get post- check refresh token", async () => {
     console.log("Refresh token test: refresh token: ", user.refreshToken);
     const res = await request(app)
       .post("/auth/refreshToken")
       .send({ userInfo: user })
-      .set({ Authorization: "JWT " + user.refreshToken });
+      .set("authorization", `JWT ${user.refreshToken}`)
     expect(res.statusCode).toEqual(200);
     user.accessToken = res.body.accessToken;
     user.refreshToken = res.body.refreshToken;
@@ -88,13 +95,13 @@ describe("User Auth Test", () => {
     expect(user.refreshToken).toBeDefined();
   });
 
-  test("get post- timeout", async () => {
-    console.log("Timeout test");
-    await new Promise(r => setTimeout(r, 6 * 1000+300));
+  test("logout", async () => {
+    console.log("Logout test");
     const res = await request(app)
-      .get("/post")
-      .set({ Authorization: "JWT " + user.accessToken });
-    expect(res.statusCode).not.toEqual(200);
+      .post("/auth/logout")
+      .set("authorization", `JWT ${user.accessToken}`)
+      .send({ refreshToken: user.refreshToken });
+    expect(res.statusCode).toEqual(200);
   });
 
 });

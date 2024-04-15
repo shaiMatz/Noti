@@ -1,49 +1,47 @@
-import request from 'supertest';
-import { Express } from 'express';
-import mongoose from 'mongoose';
-import User, { IUser } from '../models/user_model'; 
-import Post, { IPost }  from '../models/post_model';
+import request from "supertest";
+import { Express } from "express";
+import mongoose from "mongoose";
+import User, { IUser } from "../models/user_model";
+import Post, { IPost } from "../models/post_model";
 import init from "../app";
 
 // Define the types for user credentials and tokens
 type TestUser = {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    profilePicture?: string;
-    accessToken?: string;
-    refreshToken?: string;
-  };
-  
-  const user: TestUser = {
-    _id: "5f3b3b3b7abc123456789012",
-    firstName: "shai",
-    lastName: "matz",
-    email: "test@test.com",
-    password: "1234",
-  };
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  profilePicture?: string;
+  accessToken?: string;
+  refreshToken?: string;
+};
 
-  let app: Express;
+const user: TestUser = {
+  _id: "5f3b3b3b7abc123456789012",
+  firstName: "shai",
+  lastName: "matz",
+  email: "test@test.com",
+  password: "1234",
+};
 
+let app: Express;
 
 beforeAll(async () => {
-app = await init();
+  app = await init();
 
-  await Post.deleteMany()
-  await User.deleteMany()
+  await Post.deleteMany();
+  await User.deleteMany();
   const res = await request(app).post("/auth/register").send(user);
   expect(res.statusCode).toEqual(200);
   console.log("Registered user: ", res.body);
-
 });
 
 async function loginUser() {
   const response = await request(app)
-  .post('/auth/login')
-  .send({ email: user.email, password: user.password });
-    return response.body.accessToken;
+    .post("/auth/login")
+    .send({ email: user.email, password: user.password });
+  return response.body.accessToken;
 }
 
 beforeEach(async () => {
@@ -61,7 +59,7 @@ describe("Post Test", () => {
     const accessToken = await loginUser();
     const res = await request(app)
       .post("/post")
-      .set("Authorization", 'JWT ' + accessToken)
+      .set("authorization", "JWT " + accessToken)
       .send({
         userId: user._id,
         content: "This is a test post",
@@ -75,7 +73,7 @@ describe("Post Test", () => {
     const accessToken = await loginUser();
     const res = await request(app)
       .get("/post")
-      .set("Authorization", 'JWT ' + accessToken)
+      .set("authorization", "JWT " + accessToken);
     expect(res.statusCode).toEqual(200);
   });
 
@@ -84,8 +82,7 @@ describe("Post Test", () => {
     const post = await Post.findOne({ content: "This is a test post" });
     const res = await request(app)
       .delete(`/post/${post._id}`)
-      .set("Authorization", 'JWT ' + accessToken)
+      .set("authorization", "JWT " + accessToken);
     expect(res.statusCode).toEqual(200);
   });
 });
-

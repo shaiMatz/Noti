@@ -6,7 +6,28 @@ import mongoose from "mongoose";
 import postRoute from "./routes/post_routes";
 import bodyParser from "body-parser";
 import authRoute from "./routes/auth_route";
-
+import swaggerUi from "swagger-ui-express";
+import swaggerJsDoc from "swagger-jsdoc";
+if(process.env.NODE_ENV == "development") {
+    const options = {
+        definition: {
+            openapi: "3.0.0",
+            info: {
+                title: "Noti API",
+                version: "1.0.0",
+                description: "Noti API",
+            },
+            servers: [
+                {
+                    url: "http://localhost:3000",
+                },
+            ],
+        },
+        apis: ["./src/routes/*.ts"],
+    };
+    const specs = swaggerJsDoc(options);
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+}
 const initApp = () => {
     const promise = new Promise<Express>((resolve) => {
         const db = mongoose.connection;

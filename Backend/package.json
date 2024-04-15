@@ -4,7 +4,7 @@
   "description": "2024 backend",
   "main": "app.js",
   "scripts": {
-    "test": "tsc && jest --coverage --runInBand --detectOpenHandles --forceExit",
+    "test": "shx cp .env.test .env && tsc && jest --runInBand --coverage --detectOpenHandles --forceExit",
     "start": "tsc && node dist/Server.js",
     "lint": "eslint . --ext .ts",
     "devstart": "nodemon ./src/Server.ts"
@@ -17,7 +17,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.3.1"
+    "mongoose": "^8.3.1",
+    "shx": "^0.3.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.1",
@@ -26,6 +27,8 @@
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
     "supertest": "^6.3.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.4"
