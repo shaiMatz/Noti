@@ -60,7 +60,21 @@ const Login = () => {
         </View>
         <View style={{ flex: 1, height: 0.4, backgroundColor: "#00000070" }} />
       </View>
+
+      <View>
+        <Button
+          style={styles.btn2}
+          appearance="outline"
+          status="basic"
+       
+        >
+          Sign In with Google
+        </Button>
+      </View>
+
     </View>
+
+
   );
 };
 
@@ -85,6 +99,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     textAlign: "center",
     width: 200,
+  },
+  btn2: {
+    marginTop: 25,
+    marginBottom: 15,
+    borderRadius: 25,
+    textAlign: "center",
+    width: 250,
   },
   input: {
     marginBottom: 15,
