@@ -58,7 +58,7 @@ const Login = () => {
             OR
           </Text>
         </View>
-        <View style={{ flex: 1, height: 0.4, backgroundColor: "#0000070" }} />
+        <View style={{ flex: 1, height: 0.4, backgroundColor: "#00000070" }} />
       </View>
     </View>
   );
