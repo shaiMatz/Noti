@@ -100,7 +100,7 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
             }}
           >
             <View
-              style={{ flex: 1, height: 0.4, backgroundColor: "#00000070" }}
+              style={{ flex: 1, height: 1, backgroundColor: "#00000050" }}
             />
             <View>
               <Text category="c1" style={{ width: 50, textAlign: "center" }}>
@@ -108,7 +108,7 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
               </Text>
             </View>
             <View
-              style={{ flex: 1, height: 0.4, backgroundColor: "#00000070" }}
+              style={{ flex: 1, height: 1, backgroundColor: "#00000050" }}
             />
           </View>
 
