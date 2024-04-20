@@ -86,7 +86,6 @@ describe("User Auth Test", () => {
     console.log("Refresh token test: refresh token: ", user.refreshToken);
     const res = await request(app)
       .post("/auth/refreshToken")
-      .send({ userInfo: user })
       .set("authorization", `JWT ${user.refreshToken}`)
     expect(res.statusCode).toEqual(200);
     user.accessToken = res.body.accessToken;

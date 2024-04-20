@@ -57,6 +57,7 @@ function sendError(res, msg = "Invalid request") {
 
 const login = async (req: Request, res: Response): Promise<void> => {
   {
+    console.log("Login route");
     const email = req.body.email;
     const password = req.body.password;
     if (!email || !password) {
@@ -91,6 +92,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
 const generateTokens = (
   userId: string
 ): { accessToken: string; refreshToken: string } => {
+  
   const accessToken = jwt.sign(
     {
       _id: userId,
@@ -120,6 +122,7 @@ const refreshToken = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  console.log("Refresh token route");
   let authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (token === null) res.sendStatus(401);
@@ -158,7 +161,8 @@ const refreshToken = async (
 
       user.tokens[user.tokens.indexOf(token)] = refreshToken;
       await user.save();
-
+      console.log("New access:", accessToken);
+      console.log("New refresh:", refreshToken);
       res.status(200).send({ accessToken, refreshToken: refreshToken });
     } catch (err) {
       console.error("Error saving the user:", err);
@@ -168,6 +172,7 @@ const refreshToken = async (
 };
 
 const logout = async (req: Request, res: Response): Promise<void> => {
+  console.log("Logout route");
   const token = req.body.refreshToken;
   console.log("Token:", token);
   if (!token) {
@@ -175,19 +180,22 @@ const logout = async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.REFRESH_TOKEN_SECRET as string
-    );
+    const decoded = await jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
     const user = await User.findById(decoded._id);
+
     if (!user || !user.tokens.includes(token)) {
       res.status(404).send("User not found or token invalid.");
     }
     user.tokens = user.tokens.filter((t) => t !== token);
     await user.save();
+    console.log("User logged out successfully");
     res.sendStatus(200);
   } catch (err) {
-    res.status(403).send(err.message);
+    console.error("Error logging out or verifying token:", err);
+
+    if (!res.headersSent) {
+       res.status(403).send(err.message);
+    }
   }
 };
 

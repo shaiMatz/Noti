@@ -1,4 +1,5 @@
 import React, { useState, FC, useEffect, ReactElement } from "react";
+import {useAuth} from '../context/AuthContext';
 import {
   AnimationConfig,
   Button,
@@ -28,6 +29,7 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
   const [Email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const {onLogin} = useAuth();
   const toggleSecureEntry = (): void => {
     setSecureTextEntry(!secureTextEntry);
   };
@@ -51,9 +53,13 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
     );
   };
   //login function
-  const login = () => {
+  const login = async() => {
     console.log("Login function");
-    navigation.navigate("Home");
+    const result = await onLogin!(Email, password);
+    if(result){
+      console.log("Login successful");
+      navigation.navigate("Home",{userID:result.userID});
+    }
   };
 
   return (

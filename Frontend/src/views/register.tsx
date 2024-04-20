@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import {useAuth} from '../context/AuthContext';
+
 import {
   Button,
   Icon,
   Input,
   Layout,
   Text,
+  IconElement,
   Spinner,
 } from "@ui-kitten/components";
 import * as ImagePicker from "expo-image-picker";
@@ -39,7 +42,9 @@ const AddIcon = () => (
   <Icon style={styles.smallIcon} fill="#000" name="plus-outline" />
 );
 
-const renderAccessoryIcon = (name, handler) => (
+const renderAccessoryIcon = (name:any, handler
+  :any
+) => (
   <TouchableWithoutFeedback onPress={handler}>
     <Icon style={styles.icon} fill="#00000050" name={name} />
   </TouchableWithoutFeedback>
@@ -55,28 +60,49 @@ const carData = [
   { id: "car8", label: "Wagon", image: require("../../assets/car9.png") },
   { id: "car9", label: "Supercar", image: require("../../assets/car10.png") },
 ];
-
-export const SignUp = ({ navigation }) => {
+export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isContinue, setIsContinue] = useState(true);
   const [selectedCar, setSelectedCar] = useState(null);
-
+  const {onLogin, onRegister} = useAuth();
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
   };
-  const handleCarSelect = (id) => {
+  const handleCarSelect = (id:any) => {
     setSelectedCar(id);
   };
-
-  const handleContinue = () => {
-    if (selectedCar) {
+  const login = async() => {
+    console.log("Login function");
+    const result = await onLogin!(email, password);
+    if(result&& result.error){
+      console.log("Login failed");
+      Alert.alert("Login Failed", result.msg);
+    }else{
+      console.log("Login successful");
       navigation.navigate("Home");
+    }
+  };
+  const handleContinue = async () => {
+    if (selectedCar) {
+      const result = await onRegister!(
+        firstName,
+        lastName,
+        email,
+        password
+  
+      );
+      if(result && result.error){
+        Alert.alert("Registration Failed", result.msg);
+      }
+      else{
+       login();
+      }
     } else {
       alert("Please select a car type to continue.");
     }
@@ -91,7 +117,7 @@ export const SignUp = ({ navigation }) => {
         quality: 1,
       });
 
-      if (result.cancelled) {
+      if (result.canceled) {
         Alert.alert("Image Upload", "You did not select any image.");
         setIsLoading(false);
       } else {
@@ -123,7 +149,8 @@ export const SignUp = ({ navigation }) => {
 
   const ProfileImage = () => (
     <TouchableOpacity onPress={pickImage}>
-      <Image source={{ uri: profileImage }} style={styles.profileImage} />
+      {profileImage ? (<Image source={{ uri: profileImage }} style={styles.profileImage} />
+     ):(<ImagePlaceholder/>)}
       <EditIcon />
     </TouchableOpacity>
   );
@@ -138,7 +165,7 @@ export const SignUp = ({ navigation }) => {
   );
 
   const signUp = () => {
-    console.log("Sign Up function");
+    console.log("continue function");
     setIsContinue(false);
   };
 
@@ -234,11 +261,17 @@ export const SignUp = ({ navigation }) => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-<View style={{marginTop: 20, backgroundColor:"#fff",marginBottom:100}}>
+            <View
+              style={{
+                marginTop: 20,
+                backgroundColor: "#fff",
+                marginBottom: 100,
+              }}
+            >
               <Button size="small" style={styles.btn} onPress={handleContinue}>
                 Sign Up
               </Button>
-              </View>
+            </View>
           </View>
         )}
       </Layout>
@@ -318,7 +351,6 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     marginTop: 15,
     position: "relative",
-    border: 1,
   },
   profilePlaceholder: {
     width: 150,
@@ -338,7 +370,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 50,
   },
-/* Car selection styles */
+  /* Car selection styles */
   car_container: {
     marginTop: 60,
     alignItems: "center",

@@ -12,10 +12,11 @@ const authenticate = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  console.log("Authenticating user...");
   try {
     let authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-
+    console.log("midlle auth Token:", token);
     if (token == null) {
       res.sendStatus(401);
       return;
@@ -26,6 +27,7 @@ const authenticate = async (
       process.env.ACCESS_TOKEN_SECRET as string, // Ensure non-null assertion or provide a fallback
       (err: any, decoded: any) => {
         if (err) {
+          console.error("Token verification error:", err);
           return res.sendStatus(403); // Token verification failed
         }
         req.user = decoded as JwtPayload;

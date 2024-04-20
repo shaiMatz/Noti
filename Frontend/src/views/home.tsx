@@ -1,15 +1,94 @@
 import React from 'react';
-import { Button, Divider, Layout, Text,TopNavigation } from '@ui-kitten/components';
-import { SafeAreaView, View,  StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {MenuItem,OverflowMenu,IconElement,TopNavigationAction, Avatar,Button, Divider, Layout, Text,TopNavigation } from '@ui-kitten/components';
+import { SafeAreaView, View,  StyleSheet, Image,TouchableOpacity } from 'react-native';
 import { Icon } from '@ui-kitten/components'
-export const HomeScreen = ({ navigation }: { navigation: any }) => {
+import {useAuth} from '../context/AuthContext';
 
+const MenuIcon = (props:any): IconElement => (
+  <Icon
+  style={{width:15,height:15,marginRight:5}} fill="#8F9BB3"
+    name='more-vertical'
+  />
+);
+
+const InfoIcon = (props:any): IconElement => (
+  <Icon
+  style={{width:15,height:15,marginRight:5}} fill="#8F9BB3"
+    name='info'
+  />
+);
+
+const LogoutIcon = (props:any): IconElement => (
+  <Icon
+  style={{width:15,height:15,marginRight:5}} fill="#8F9BB3"
+    name='log-out'
+  />
+);
+export const HomeScreen = (route:any,{ navigation }: { navigation: any }) => {
+  const [menuVisible, setMenuVisible] = React.useState(false);
+  const {onLogout} = useAuth();
+
+  const logout = async() => {
+    console.log("Logout function");
+    const result = await onLogout!();
+    if(result&&result.error){
+      console.log("Logout failed");
+      return
+    }else{
+      console.log("Logout successful");
+      navigation.navigate('Login');
+    }
+  };
+
+  const toggleMenu = (): void => {
+    setMenuVisible(!menuVisible);
+  };
+
+  const renderMenuAction = (): React.ReactElement => (
+    <TopNavigationAction
+      icon={MenuIcon}
+      onPress={toggleMenu}
+    />
+  );
+  const renderOverflowMenuAction = (): React.ReactElement => (
+    <OverflowMenu
+      anchor={renderMenuAction}
+      visible={menuVisible}
+      onBackdropPress={toggleMenu}
+    >
+      <MenuItem
+        accessoryLeft={InfoIcon}
+        title='About'
+        onPress={navigateDetails}
+      />
+      <MenuItem
+        accessoryLeft={LogoutIcon}
+        title='Logout'
+        onPress={logout}
+      />
+    </OverflowMenu>
+  );
   const navigateDetails = () => {
     navigation.navigate('Details');
   };
-
+  const renderTitle = (props:any): React.ReactElement => (
+    <View style={styles.titleContainer}>
+      <Avatar
+        style={styles.logo}
+        source={require('../../assets/logo.png')}
+      />
+      <Text {...props}>Noti</Text>
+    </View>
+  );
   return (
     <SafeAreaView style={styles.container}>
+    
+            <TopNavigation style={styles.header}
+      title={renderTitle}
+      accessoryRight={renderOverflowMenuAction}
+    />     
+
+
       <View style={styles.profileContainer}>
         <Image
           style={styles.profilePic}
@@ -39,10 +118,14 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    top:50 ,
+    backgroundColor: '#fff',
+
+  },
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#fff',
   },
   profileContainer: {
@@ -96,5 +179,12 @@ const styles = StyleSheet.create({
   chargeText: {
   fontSize: 18,
   color: '#333',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    marginHorizontal: 16,
   },
   });
