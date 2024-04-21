@@ -80,13 +80,19 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
   const login = async() => {
     console.log("Login function");
     const result = await onLogin!(email, password);
-    if(result&& result.error){
+    console.log("Result: ",result);
+    if(!result.error){
+      console.log("Login successful, userId: ",result.userId);
+      
+      navigation.navigate({
+        name: 'Home',
+        merge: true,
+      });    }
+    else{
       console.log("Login failed");
-      Alert.alert("Login Failed", result.msg);
-    }else{
-      console.log("Login successful");
-      navigation.navigate("Home");
+      alert("Login failed\n"+result.message);
     }
+
   };
   const handleContinue = async () => {
     if (selectedCar) {

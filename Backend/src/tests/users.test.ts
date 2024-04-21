@@ -62,7 +62,7 @@ async function loginUser(): Promise<string> {
 describe("User Test", () => {
   test("Get User", async () => {
     const res = await request(app)
-      .get(`/user/${user._id}`)
+      .get(`/user`)
       .set("Authorization", `Bearer ${user.accessToken}`);
     expect(res.statusCode).toEqual(200);
     expect(res.body.email).toEqual(user.email);
@@ -71,7 +71,7 @@ describe("User Test", () => {
   test("Edit User", async () => {
     const newName = "newName";
     const res = await request(app)
-      .put(`/user/${user._id}`)
+      .put(`/user`)
       .set("Authorization", `Bearer ${user.accessToken}`)
       .send({ firstName: newName });
     expect(res.statusCode).toEqual(200);
@@ -80,7 +80,7 @@ describe("User Test", () => {
 
   test("Delete User", async () => {
     const res = await request(app)
-      .delete(`/user/${user._id}`)
+      .delete(`/user`)
       .set("Authorization", `Bearer ${user.accessToken}`);
     expect(res.statusCode).toEqual(200);
     const deletedUser = await User.findById(user._id);

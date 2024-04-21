@@ -12,7 +12,7 @@ import { AuthProvider, useAuth } from "../context/AuthContext";
 const { Navigator, Screen } = createNativeStackNavigator();
 
 const HomeNavigator = () => {
-  const { authState, onLogout } = useAuth();
+  const { authState } = useAuth();
 
   return (
     <Navigator screenOptions={{ headerShown: false }}>
@@ -21,7 +21,8 @@ const HomeNavigator = () => {
           <Screen
             name="Home"
             component={HomeScreen}
-            initialParams={{ userId: 0 }}
+          
+
           />
           <Screen name="Details" component={DetailsScreen} />
         </>

@@ -56,11 +56,20 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
   const login = async() => {
     console.log("Login function");
     const result = await onLogin!(Email, password);
-    if(result){
-      console.log("Login successful");
+    console.log("Result: ",result);
+    if(!result.error){
+      console.log("Login successful, userId: ",result.userId);
       
-      navigation.navigate("Home",{userID:result.userID});
+      navigation.navigate({
+        name: 'Home',
+        merge: true,
+      });
     }
+    else{
+      console.log("Login failed");
+      alert("Login failed: "+result.message);
+    }
+
   };
 
   return (

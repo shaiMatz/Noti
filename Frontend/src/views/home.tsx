@@ -1,43 +1,79 @@
-import React from 'react';
-import {MenuItem,OverflowMenu,IconElement,TopNavigationAction, Avatar,Button, Divider, Layout, Text,TopNavigation } from '@ui-kitten/components';
-import { SafeAreaView, View,  StyleSheet, Image,TouchableOpacity } from 'react-native';
-import { Icon } from '@ui-kitten/components'
-import {useAuth} from '../context/AuthContext';
+import React, { useEffect, useState } from "react";
+import {
+  MenuItem,
+  OverflowMenu,
+  IconElement,
+  TopNavigationAction,
+  Avatar,
+  Button,
+  Divider,
+  Layout,
+  Text,
+  TopNavigation,
+} from "@ui-kitten/components";
+import {
+  SafeAreaView,
+  View,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { Icon } from "@ui-kitten/components";
+import { useAuth } from "../context/AuthContext";
+import { getUser, deleteUser } from "../api/apiUser";
+import { User } from "../models/user_model";
 
-const MenuIcon = (props:any): IconElement => (
+const MenuIcon = (props: any): IconElement => (
   <Icon
-  style={{width:15,height:15,marginRight:5}} fill="#8F9BB3"
-    name='more-vertical'
+    style={{ width: 15, height: 15, marginRight: 5 }}
+    fill="#8F9BB3"
+    name="more-vertical"
   />
 );
 
-const InfoIcon = (props:any): IconElement => (
+const InfoIcon = (props: any): IconElement => (
   <Icon
-  style={{width:15,height:15,marginRight:5}} fill="#8F9BB3"
-    name='info'
+    style={{ width: 15, height: 15, marginRight: 5 }}
+    fill="#8F9BB3"
+    name="info"
   />
 );
 
-const LogoutIcon = (props:any): IconElement => (
+const LogoutIcon = (props: any): IconElement => (
   <Icon
-  style={{width:15,height:15,marginRight:5}} fill="#8F9BB3"
-    name='log-out'
+    style={{ width: 15, height: 15, marginRight: 5 }}
+    fill="#8F9BB3"
+    name="log-out"
   />
 );
-export const HomeScreen = (route:any,{ navigation }: { navigation: any }) => {
-  const { userId } = route.params;
-  const [menuVisible, setMenuVisible] = React.useState(false);
-  const {onLogout} = useAuth();
+export const HomeScreen = ({ navigation }: { navigation: any }) => {
 
-  const logout = async() => {
-    console.log("Logout function");
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  const { onLogout } = useAuth();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await getUser();
+        console.log("User Data: ", userData);
+        setUser(userData);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const logout = async () => {
     const result = await onLogout!();
-    if(result&&result.error){
+    if (result && result.error) {
       console.log("Logout failed");
-      return
-    }else{
+    } else {
       console.log("Logout successful");
-      navigation.navigate('Login');
+      navigation.navigate("Login");
     }
   };
 
@@ -46,10 +82,7 @@ export const HomeScreen = (route:any,{ navigation }: { navigation: any }) => {
   };
 
   const renderMenuAction = (): React.ReactElement => (
-    <TopNavigationAction
-      icon={MenuIcon}
-      onPress={toggleMenu}
-    />
+    <TopNavigationAction icon={MenuIcon} onPress={toggleMenu} />
   );
   const renderOverflowMenuAction = (): React.ReactElement => (
     <OverflowMenu
@@ -59,50 +92,43 @@ export const HomeScreen = (route:any,{ navigation }: { navigation: any }) => {
     >
       <MenuItem
         accessoryLeft={InfoIcon}
-        title='About'
+        title="About"
         onPress={navigateDetails}
       />
-      <MenuItem
-        accessoryLeft={LogoutIcon}
-        title='Logout'
-        onPress={logout}
-      />
+      <MenuItem accessoryLeft={LogoutIcon} title="Logout" onPress={logout} />
     </OverflowMenu>
   );
   const navigateDetails = () => {
-    navigation.navigate('Details');
+    navigation.navigate("Details");
   };
-  const renderTitle = (props:any): React.ReactElement => (
+  const renderTitle = (props: any): React.ReactElement => (
     <View style={styles.titleContainer}>
-      <Avatar
-        style={styles.logo}
-        source={require('../../assets/logo.png')}
-      />
+      <Avatar style={styles.logo} source={require("../../assets/logo.png")} />
       <Text {...props}>Noti</Text>
     </View>
   );
   return (
     <SafeAreaView style={styles.container}>
-    
-            <TopNavigation style={styles.header}
-      title={renderTitle}
-      accessoryRight={renderOverflowMenuAction}
-    />     
-
+      <TopNavigation
+        style={styles.header}
+        title={renderTitle}
+        accessoryRight={renderOverflowMenuAction}
+      />
 
       <View style={styles.profileContainer}>
         <Image
           style={styles.profilePic}
-          source={{ uri: 'https://randomuser.me/api/portraits' }}
+          source={{ uri: "https://randomuser.me/api/portraits" }}
         />
-        <Text style={styles.greeting}>Hello, Aliya</Text>
-        <Text style={styles.address}>1177 Californian Dr, San Jose, CA 95125, USA</Text>
+        <Text style={styles.greeting}>
+          Hello, {user ? user.firstName : "Loading..."}
+        </Text>
+       
       </View>
 
-    
       <View style={styles.controlContainer}>
         <TouchableOpacity style={styles.controlButton}>
-          <Icon name='unlock' fill='#000' style={styles.icon} />
+          <Icon name="unlock" fill="#000" style={styles.icon} />
           <Text>Unlock Doors</Text>
         </TouchableOpacity>
       </View>
@@ -120,18 +146,17 @@ export const HomeScreen = (route:any,{ navigation }: { navigation: any }) => {
 
 const styles = StyleSheet.create({
   header: {
-    top:50 ,
-    backgroundColor: '#fff',
-
+    top: 50,
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   profileContainer: {
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   profilePic: {
     width: 80,
@@ -140,52 +165,52 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 10,
   },
   address: {
     fontSize: 16,
-    color: '#666',
-    marginTop: 5
+    color: "#666",
+    marginTop: 5,
   },
   carImage: {
-  width: 600,
-  height: 300,
-  marginTop: 20,
+    width: 600,
+    height: 300,
+    marginTop: 20,
   },
   controlContainer: {
-  flexDirection: 'row',
-  justifyContent: 'center',
-  padding: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    padding: 10,
   },
   controlButton: {
-  alignItems: 'center',
-  backgroundColor: '#f0f0f0',
-  borderRadius: 10,
-  padding: 15,
-  marginHorizontal: 10,
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    padding: 15,
+    marginHorizontal: 10,
   },
   icon: {
-  width: 32,
-  height: 32,
+    width: 32,
+    height: 32,
   },
   footer: {
-  width: '100%',
-  padding: 20,
-  borderTopWidth: 1,
-  borderTopColor: '#e0e0e0',
-  alignItems: 'center',
-  backgroundColor: '#fafafa',
+    width: "100%",
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
   },
   chargeText: {
-  fontSize: 18,
-  color: '#333',
+    fontSize: 18,
+    color: "#333",
   },
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   logo: {
     marginHorizontal: 16,
   },
-  });
+});

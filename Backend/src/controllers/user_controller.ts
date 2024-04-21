@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User, { IUser } from "../models/user_model";
 import createController from "./base_controller";
+import { AuthRequest } from "../common/auth_middleware";
 
 class userController extends createController<IUser> {
   constructor() {
@@ -8,9 +9,10 @@ class userController extends createController<IUser> {
   }
 
   // Get a specific user
-  async getUser(req: Request, res: Response): Promise<void> {
+  async getUser(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const user = await User.findById(req.params.id);
+      const userId = req.user._id;
+      const user = await User.findById(userId);
       if (!user) {
         res.status(404).json({ message: "User not found" });
         return;
@@ -23,11 +25,13 @@ class userController extends createController<IUser> {
   }
 
   // Edit a user
-  async editUser(req: Request, res: Response): Promise<void> {
+  async editUser(req: AuthRequest, res: Response): Promise<void> {
     try {
-      console.log("Editing user with id: ", req.params.id);
+      const userId = req.user._id;
+
+      console.log("Editing user with id: ", userId);
       console.log("Request body: ", req.body);
-      const user = await User.findById(req.params.id);
+      const user = await User.findById(userId);
       if (!user) {
         res.status(404).json({ message: "User not found" });
         return;
@@ -49,9 +53,11 @@ class userController extends createController<IUser> {
   }
 
   // Delete a user
-  async deleteUser(req: Request, res: Response): Promise<void> {
+  async deleteUser(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const result = await User.findByIdAndDelete(req.params.id);
+      const userId = req.user._id;
+
+      const result = await User.findByIdAndDelete(userId);
       if (!result) {
         res.status(404).json({ message: "User not found" });
         return;

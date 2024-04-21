@@ -82,7 +82,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
       await user.save();
       res
         .status(200)
-        .send({ accessToken: accessToken, refreshToken: refreshToken });
+        .send({ accessToken: accessToken, refreshToken: refreshToken, userId: user._id});
     } catch (error) {
       return sendError(res);
     }

@@ -1,6 +1,7 @@
-import { Request, Response } from "express"; // Importing types for Request and Response
-import Post, { IPost } from "../models/post_model"; // Assuming Post is properly typed in its own definition
+import { Request, Response } from "express";
+import Post, { IPost } from "../models/post_model";
 import createController from "./base_controller";
+import { AuthRequest } from "../common/auth_middleware"; 
 
 class postController extends createController<IPost> {
   constructor() {
@@ -32,10 +33,11 @@ class postController extends createController<IPost> {
     }
   }
 
-  async createPost(req: Request, res: Response) {
+  async createPost(req: AuthRequest , res: Response) {
+    const userId = req.user._id;
     console.log("Request body: ", req.body);
     const post = new Post({
-      userId: req.body.userId,
+      userId: userId,
       content: req.body.content,
       location: req.body.location,
       image: req.body.image,
@@ -53,7 +55,7 @@ class postController extends createController<IPost> {
 
   
   //edit post
-  async editPost(req: Request, res: Response) {
+  async editPost(req: AuthRequest , res: Response) {
     try {
       console.log("Editing post with id: ", req.params.id);
       const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }); // Ensures the updated document is returned
@@ -69,11 +71,13 @@ class postController extends createController<IPost> {
   }
 
   //get specific user posts
-  async getPostByUser(req: Request, res: Response) {
+  async getPostByUser(req: AuthRequest, res: Response) {
     try {
+      const userId = req.user._id;
+
       console.log("getPostByUser test")
-      console.log("User ID: ", req.params.userId);
-      const posts = await Post.find({ userId: req.params.userId });
+      console.log("User ID: ",userId);
+      const posts = await Post.find({ userId: userId });
       res.status(200).json(posts);
       console.log("Posts retrieved successfully: ", posts);
     } catch (error) {
@@ -83,10 +87,12 @@ class postController extends createController<IPost> {
   }
 
   //get specific location posts
-  async getPostByLocation(req: Request, res: Response) {
+  async getPostByLocation(req: AuthRequest , res: Response) {
     try {
+      
       console.log("Location: ", req.params.location);
       const posts = await Post.find({ location: req.params.location });
+
       res.status(200).json(posts);
       console.log("Posts retrieved successfully: ", posts);
     } catch (error) {
@@ -96,7 +102,7 @@ class postController extends createController<IPost> {
   }
 
  
-  async deletePost(req: Request, res: Response) {
+  async deletePost(req: AuthRequest , res: Response) {
     try {
       console.log("Deleting post with id: ", req.params.id);
       const result = await Post.findByIdAndDelete(req.params.id);
