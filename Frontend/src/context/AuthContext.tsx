@@ -58,10 +58,11 @@ export const AuthProvider = ({ children }: any) => {
                 accessToken
               );
               originalRequest.headers["authorization"] = `JWT ${accessToken}`; // Set the header for the retried request
-              const refreshkey = await SecureStore.getItemAsync(REFRESH_KEY);
-              originalRequest.data = { refreshToken: refreshkey };
+              /*const refreshkey = await SecureStore.getItemAsync(REFRESH_KEY);
+              originalRequest.data = { refreshToken: refreshkey };*/
               return apiClient(originalRequest); // Retry the original request with the new token
             } else {
+              console.log("Failed to refresh token");
               return Promise.reject(error);
             }
           } catch (refreshError) {
@@ -95,6 +96,8 @@ export const AuthProvider = ({ children }: any) => {
           accessToken: null,
           authenticated: false,
         });
+        await SecureStore.deleteItemAsync(REFRESH_KEY);
+        await SecureStore.deleteItemAsync(ACCESS_KEY);
     };
     loadToken();
   }, []);
@@ -197,6 +200,8 @@ export const AuthProvider = ({ children }: any) => {
     const refreshKey = await SecureStore.getItemAsync(REFRESH_KEY);
     if (!refreshKey) {
       console.log("No refresh token found");
+      await SecureStore.deleteItemAsync(REFRESH_KEY);
+      await SecureStore.deleteItemAsync(ACCESS_KEY);
       return null; // You might want to handle this more gracefully
     }
     try {

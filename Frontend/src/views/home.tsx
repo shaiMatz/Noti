@@ -6,8 +6,6 @@ import {
   TopNavigationAction,
   Avatar,
   Button,
-  Divider,
-  Layout,
   Text,
   TopNavigation,
 } from "@ui-kitten/components";
@@ -46,8 +44,16 @@ const LogoutIcon = (props: any): IconElement => (
     name="log-out"
   />
 );
-export const HomeScreen = ({ navigation }: { navigation: any }) => {
 
+const continueIcon = (props: any): IconElement => (
+  <Icon
+    style={{ width: 25, height: 25, marginRight: 5 }}
+    fill="#3aedcd"
+    name="arrow-ios-forward"
+  />
+);
+
+export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
@@ -93,13 +99,12 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       <MenuItem
         accessoryLeft={InfoIcon}
         title="About"
-        onPress={navigateDetails}
       />
       <MenuItem accessoryLeft={LogoutIcon} title="Logout" onPress={logout} />
     </OverflowMenu>
   );
-  const navigateDetails = () => {
-    navigation.navigate("Details");
+  const navigateParking = () => {
+    navigation.navigate("Parking");
   };
   const renderTitle = (props: any): React.ReactElement => (
     <View style={styles.titleContainer}>
@@ -116,29 +121,33 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       />
 
       <View style={styles.profileContainer}>
-        <Image
-          style={styles.profilePic}
-          source={{ uri: "https://randomuser.me/api/portraits" }}
-        />
-        <Text style={styles.greeting}>
+   
+        <Text category="h4" style={styles.greeting}>
           Hello, {user ? user.firstName : "Loading..."}
         </Text>
-       
-      </View>
-
+        <Text category="p1" style={styles.greeting}>
+          want to set a reminder to close the parking app?
+        </Text>
+        
       <View style={styles.controlContainer}>
         <TouchableOpacity style={styles.controlButton}>
-          <Icon name="unlock" fill="#000" style={styles.icon} />
-          <Text>Unlock Doors</Text>
+          <Text>Set a Reminder</Text>
         </TouchableOpacity>
       </View>
-      <Image
-        style={styles.carImage}
-        source={require("../../assets/car9.png")}
-      />
+     
+      </View>
 
       <View style={styles.footer}>
-        <Text style={styles.chargeText}>Charge 15%</Text>
+        <Button
+          size="large"
+          appearance="ghost"
+          status="primary"
+          style={styles.parkingBtn}
+          accessoryRight={continueIcon}
+          onPress={navigateParking}
+        >
+          Search for Parking
+        </Button>
       </View>
     </SafeAreaView>
   );
@@ -146,16 +155,19 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
 
 const styles = StyleSheet.create({
   header: {
+    position: "absolute",
     top: 50,
     backgroundColor: "#fff",
   },
   container: {
+    display: "flex",
+    justifyContent: "center",
     flex: 1,
     alignItems: "center",
     backgroundColor: "#fff",
   },
   profileContainer: {
-    marginTop: 20,
+    marginTop: 50,
     alignItems: "center",
   },
   profilePic: {
@@ -164,20 +176,9 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   greeting: {
-    fontSize: 24,
-    fontWeight: "bold",
     marginTop: 10,
   },
-  address: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 5,
-  },
-  carImage: {
-    width: 600,
-    height: 300,
-    marginTop: 20,
-  },
+
   controlContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -195,8 +196,9 @@ const styles = StyleSheet.create({
     height: 32,
   },
   footer: {
+    position: "absolute",
+    bottom: 0,
     width: "100%",
-    padding: 20,
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     alignItems: "center",
@@ -212,5 +214,8 @@ const styles = StyleSheet.create({
   },
   logo: {
     marginHorizontal: 16,
+  },
+  parkingBtn: {
+    width: "100%",
   },
 });
