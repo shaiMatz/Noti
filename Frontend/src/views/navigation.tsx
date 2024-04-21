@@ -21,9 +21,7 @@ const HomeNavigator = () => {
           <Screen
             name="Home"
             component={HomeScreen}
-            options={{
-              headerRight: () => <Button onPress={onLogout}>Sign Out</Button>,
-            }}
+            initialParams={{ userId: 0 }}
           />
           <Screen name="Details" component={DetailsScreen} />
         </>

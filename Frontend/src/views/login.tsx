@@ -58,6 +58,7 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
     const result = await onLogin!(Email, password);
     if(result){
       console.log("Login successful");
+      
       navigation.navigate("Home",{userID:result.userID});
     }
   };

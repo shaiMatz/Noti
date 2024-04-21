@@ -25,6 +25,7 @@ const LogoutIcon = (props:any): IconElement => (
   />
 );
 export const HomeScreen = (route:any,{ navigation }: { navigation: any }) => {
+  const { userId } = route.params;
   const [menuVisible, setMenuVisible] = React.useState(false);
   const {onLogout} = useAuth();
 
