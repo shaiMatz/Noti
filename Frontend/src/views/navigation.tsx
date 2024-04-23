@@ -6,6 +6,7 @@ import { HomeScreen } from "./home";
 import { ParkingScreen } from "./parkingPost";
 import Login from "./login";
 import Register from "./register";
+import {UploadPost} from "./uploadPost";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 
 const { Navigator, Screen } = createNativeStackNavigator();
@@ -22,6 +23,7 @@ const HomeNavigator = () => {
             component={HomeScreen}
           />
           <Screen name="Parking" component={ParkingScreen} />
+          <Screen name="UploadPost" component={UploadPost} />
         </>
       ) : (
         <>

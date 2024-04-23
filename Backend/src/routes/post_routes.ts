@@ -15,7 +15,7 @@ router.put("/:id", authenticate,PostController.editPost.bind(PostController));
 
 router.get("/user/:id", authenticate,PostController.getPostByUser.bind(PostController));
 
-router.get("/location/:location", authenticate,PostController.getPostByLocation.bind(PostController));
+router.post("/location", authenticate, PostController.getPostByLocation.bind(PostController));
 
 
 

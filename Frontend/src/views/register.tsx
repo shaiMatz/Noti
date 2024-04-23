@@ -7,8 +7,11 @@ import {
   Input,
   Layout,
   Text,
+  useTheme,
   IconElement,
   Spinner,
+  TopNavigation,
+  TopNavigationAction
 } from "@ui-kitten/components";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -30,7 +33,9 @@ const AlertIcon = () => (
     name="alert-circle-outline"
   />
 );
-
+const BackIcon = (props:any) => (
+  <Icon {...props} name='arrow-back' />
+);
 const uploadIcon = () => (
   <Icon style={styles.icon} fill="#8F9BB3" name="upload-outline" />
 );
@@ -53,12 +58,12 @@ const carData = [
   { id: "car1", label: "Coupe", image: require("../../assets/car1.png") },
   { id: "car2", label: "SUV", image: require("../../assets/car2.png") },
   { id: "car3", label: "Convertible", image: require("../../assets/car3.png") },
-  { id: "car4", label: "Truck", image: require("../../assets/car5.png") },
-  { id: "car5", label: "Van", image: require("../../assets/car6.png") },
-  { id: "car6", label: "Coupe", image: require("../../assets/car7.png") },
-  { id: "car7", label: "Hatchback", image: require("../../assets/car8.png") },
-  { id: "car8", label: "Wagon", image: require("../../assets/car9.png") },
-  { id: "car9", label: "Supercar", image: require("../../assets/car10.png") },
+  { id: "car4", label: "Station", image: require("../../assets/car4.png") },
+  { id: "car5", label: "Minivan", image: require("../../assets/car5.png") },
+  { id: "car6", label: "Crossover", image: require("../../assets/car6.png") },
+  { id: "car7", label: "Hatchback", image: require("../../assets/car7.png") },
+  { id: "car8", label: "Sedan", image: require("../../assets/car8.png") },
+  { id: "car9", label: "Pickup Truck", image: require("../../assets/car9.png") },
 ];
 export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
   const [firstName, setFirstName] = useState("");
@@ -71,6 +76,8 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
   const [isContinue, setIsContinue] = useState(true);
   const [selectedCar, setSelectedCar] = useState(null);
   const {onLogin, onRegister} = useAuth();
+  const theme = useTheme();
+
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
   };
@@ -174,6 +181,13 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
     console.log("continue function");
     setIsContinue(false);
   };
+  const navigateBack = () => {
+    navigation.goBack();
+  };
+
+  const BackAction = () => (
+    <TopNavigationAction icon={BackIcon} onPress={navigateBack} />
+  );
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -242,10 +256,11 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
             </View>
           </>
         ) : (
+          <SafeAreaView style={{ flex: 1,paddingTop:50 ,backgroundColor:theme['background-basic-color-1'] }}>
+          <TopNavigation title='Choose Your Car Type' alignment='center' accessoryLeft={BackAction} />
+     
           <View style={styles.car_container}>
-            <Text category="h5" style={{ marginBottom: 15 }}>
-              Choose Your Car Type
-            </Text>
+
             <ScrollView contentContainerStyle={styles.grid}>
               {carData.map((car) => (
                 <TouchableOpacity
@@ -271,14 +286,16 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
               style={{
                 marginTop: 20,
                 backgroundColor: "#fff",
-                marginBottom: 100,
+                marginBottom: 180,
               }}
             >
               <Button size="small" style={styles.btn} onPress={handleContinue}>
                 Sign Up
               </Button>
             </View>
+            
           </View>
+          </SafeAreaView>
         )}
       </Layout>
     </SafeAreaView>
@@ -378,7 +395,6 @@ const styles = StyleSheet.create({
   },
   /* Car selection styles */
   car_container: {
-    marginTop: 60,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -407,8 +423,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000020",
   },
   carImage: {
-    width: 170,
-    height: 170, // Fixed height for uniformity
+    width: 130,
+    height: 130, // Fixed height for uniformity
+    resizeMode: "cover",
+
   },
   label: {
     fontSize: 16,

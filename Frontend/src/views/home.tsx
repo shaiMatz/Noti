@@ -8,18 +8,28 @@ import {
   Button,
   Text,
   TopNavigation,
+  useTheme,
+  Modal,
 } from "@ui-kitten/components";
 import {
   SafeAreaView,
   View,
   StyleSheet,
-  Image,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import { Icon } from "@ui-kitten/components";
 import { useAuth } from "../context/AuthContext";
 import { getUser, deleteUser } from "../api/apiUser";
 import { User } from "../models/user_model";
+import { format, set } from "date-fns";
+import SpinningTimer from "../components/SpinningTimer";
+import { requestLocationPermissions, startLocationUpdates, stopLocationUpdates } from "../services/LocationService";
+import * as SecureStore from 'expo-secure-store';
+import  {scheduleNotification}  from '../services/NotificationService';
+
+const TIMER_STORAGE_KEY = 'TIMER_START_TIME';
+
 
 const MenuIcon = (props: any): IconElement => (
   <Icon
@@ -48,18 +58,44 @@ const LogoutIcon = (props: any): IconElement => (
 const continueIcon = (props: any): IconElement => (
   <Icon
     style={{ width: 25, height: 25, marginRight: 5 }}
-    fill="#3aedcd"
+    fill="#142A37"
     name="arrow-ios-forward"
   />
 );
+const getGreetingTime = (date: { getHours: () => any }) => {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
 
 export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-
+  const theme = useTheme();
+  const [reminderSet, setReminderSet] = useState(false);
+  const [timerStart, setTimerStart] = useState(false);
+  const [timerTime, setTimerTime] = useState(0);
   const { onLogout } = useAuth();
+  const [greeting, setGreeting] = useState(getGreetingTime(new Date())); // Set initial greeting
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isNoPost, setisNoPost] = useState(false);
+  const [dynamicGreeting, setDynamicGreeting] = useState(greeting);
 
   useEffect(() => {
+    const checkTimer = async () => {
+      const startTimeString = await SecureStore.getItemAsync(TIMER_STORAGE_KEY);
+      if (startTimeString) {
+        const startTime = parseInt(startTimeString, 10);
+        const currentTime = Date.now();
+        setTimerTime(currentTime - startTime);
+        setTimerStart(true);
+        requestLocationPermissions().then(startLocationUpdates);
+      }
+    };
+
+   
+
     const fetchUserData = async () => {
       try {
         const userData = await getUser();
@@ -70,8 +106,110 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       }
     };
 
+    checkTimer();
     fetchUserData();
+    scheduleNotification();
+    requestLocationPermissions();
   }, []);
+
+
+  
+  useEffect(() => {
+    const updateGreeting = () => {
+      const newGreeting = getGreetingTime(new Date());
+      setGreeting(newGreeting);
+    };
+
+    const intervalId = setInterval(updateGreeting, 60000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    setTimerTime(0);
+    if (timerStart) {
+      interval = setInterval(() => {
+        updateTimerTime();
+      }, 1000);
+    } else {
+      if (interval) {
+        clearInterval(interval);
+      }
+    }
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [timerStart]);
+
+  const updateTimerTime = async () => {
+    const startTimeString = await SecureStore.getItemAsync(TIMER_STORAGE_KEY);
+    if (startTimeString) {
+      const startTime = parseInt(startTimeString, 10);
+      setTimerTime(Date.now() - startTime);
+    }
+  };
+  const handleClosePango = () => {
+    // Hide the modal
+    setisNoPost(false);
+    setIsModalVisible(false);
+
+    // Attempt to open the Pango app; replace 'pango://app' with the actual Pango app deep link
+    const pangoUrl = "pango://app";
+    Linking.canOpenURL(pangoUrl)
+      .then((supported) => {
+        if (!supported) {
+          console.log("Can't handle Pango URL");
+        } else {
+          return Linking.openURL(pangoUrl);
+        }
+      })
+      .catch((err) => console.error("An error occurred", err));
+  };
+
+  const handleReminderToggle =async () => {
+    if (!reminderSet) {
+      requestLocationPermissions().then(startLocationUpdates);
+      const startTime = Date.now();
+      await SecureStore.setItemAsync(TIMER_STORAGE_KEY, startTime.toString());
+      setTimerTime(0);
+      setReminderSet(true);
+      setTimerStart(true);
+      setDynamicGreeting("Your reminder is set");
+    } else {
+      await SecureStore.deleteItemAsync(TIMER_STORAGE_KEY);
+      setTimerTime(0);
+      handleTimerClose(); // This will also handle setting reminderSet to false
+      setDynamicGreeting(getGreetingTime(new Date()));
+    }
+  };
+  const handleTimerClose = () => {
+    setTimerStart(false);
+    setReminderSet(false);
+    setIsModalVisible(true);
+    setisNoPost(true);
+    stopLocationUpdates()
+  };
+  const handlePostUpload = () => {
+    setIsModalVisible(false);
+    navigation.navigate("UploadPost");
+    // Implement your logic to post about the cleared parking spot
+    console.log("Post uploaded!");
+  };
+  const getButtonStyle = () => ({
+    backgroundColor: reminderSet ? theme["color-primary-default"] : null,
+  });
+  const handlePostDecline = () => {
+    setisNoPost(false);
+    // Logic to handle when the user does not want to upload a post
+    console.log("Post declined!");
+  };
+
+
+
+
 
   const logout = async () => {
     const result = await onLogout!();
@@ -96,10 +234,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       visible={menuVisible}
       onBackdropPress={toggleMenu}
     >
-      <MenuItem
-        accessoryLeft={InfoIcon}
-        title="About"
-      />
+      <MenuItem accessoryLeft={InfoIcon} title="About" />
       <MenuItem accessoryLeft={LogoutIcon} title="Logout" onPress={logout} />
     </OverflowMenu>
   );
@@ -112,8 +247,14 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       <Text {...props}>Noti</Text>
     </View>
   );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: theme["background-basic-color-1"] },
+      ]}
+    >
       <TopNavigation
         style={styles.header}
         title={renderTitle}
@@ -121,27 +262,53 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       />
 
       <View style={styles.profileContainer}>
-   
         <Text category="h4" style={styles.greeting}>
-          Hello, {user ? user.firstName : "Loading..."}
+          {dynamicGreeting}, {user ? user.firstName : "Loading..."}
         </Text>
-        <Text category="p1" style={styles.greeting}>
-          want to set a reminder to close the parking app?
+        <Text category="h6" style={styles.greeting}>
+          {reminderSet
+            ? "Reminder active. Close the app at your set time."
+            : "Want to set a reminder to close the parking app?"}
         </Text>
-        
-      <View style={styles.controlContainer}>
-        <TouchableOpacity style={styles.controlButton}>
-          <Text>Set a Reminder</Text>
-        </TouchableOpacity>
-      </View>
-     
       </View>
 
-      <View style={styles.footer}>
+      <View style={styles.controlContainer}>
+        <TouchableOpacity
+          style={[
+            styles.controlButton,
+            reminderSet
+              ? {}
+              : {
+                  backgroundColor: theme["color-primary-default"],
+                  padding: 15,
+                },
+          ]}
+          onPress={handleReminderToggle}
+        >
+          {!reminderSet ? (
+            <>
+              <Icon name="bell" fill="#fff" style={styles.icon} />
+              <Text style={styles.buttonText}>Set a Reminder</Text>
+            </>
+          ) : (
+            <SpinningTimer timerTime={timerTime} />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme["background-basic-color-3"],
+            borderTopColor: theme["background-basic-color-4"],
+          },
+        ]}
+      >
         <Button
           size="large"
           appearance="ghost"
-          status="primary"
+          status="info"
           style={styles.parkingBtn}
           accessoryRight={continueIcon}
           onPress={navigateParking}
@@ -149,6 +316,55 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
           Search for Parking
         </Button>
       </View>
+
+      <Modal
+        visible={isModalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          {isNoPost ? (
+            <>
+              <Text category="h5" style={{ marginBottom: 5 }}>
+                Parking spot cleared?
+              </Text>
+              <Text category="p1">
+                Would you like to upload a post about the cleared parking spot?
+              </Text>
+              <View
+                style={{ display: "flex", flexDirection: "row", marginTop: 20 }}
+              >
+                <Button size="small" onPress={handlePostUpload}>
+                  Yes, upload post
+                </Button>
+                <Button
+                  size="small"
+                  onPress={handlePostDecline}
+                  appearance="ghost"
+                >
+                  No, thanks
+                </Button>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text category="h5" style={{ marginBottom: 5 }}>
+                Don't forget to close Pango!
+              </Text>
+              <Button size="small" onPress={handleClosePango}>
+                Open Pango
+              </Button>
+              <Button
+                size="small"
+                onPress={() => setIsModalVisible(false)}
+                appearance="ghost"
+              >
+                Close
+              </Button>
+            </>
+          )}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -157,16 +373,15 @@ const styles = StyleSheet.create({
   header: {
     position: "absolute",
     top: 50,
-    backgroundColor: "#fff",
   },
   container: {
     display: "flex",
     justifyContent: "center",
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#fff",
   },
   profileContainer: {
+    padding: 50,
     marginTop: 50,
     alignItems: "center",
   },
@@ -177,6 +392,8 @@ const styles = StyleSheet.create({
   },
   greeting: {
     marginTop: 10,
+    fontWeight: "normal",
+    textAlign: "center",
   },
 
   controlContainer: {
@@ -186,27 +403,28 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
     borderRadius: 10,
-    padding: 15,
     marginHorizontal: 10,
   },
   icon: {
     width: 32,
     height: 32,
   },
+  timerText: {
+    color: "#fff",
+  },
+  reminderSet: {
+    backgroundColor: "#34C759",
+  },
+  buttonText: {
+    color: "#fff",
+  },
   footer: {
     position: "absolute",
     bottom: 0,
     width: "100%",
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
     alignItems: "center",
-    backgroundColor: "#fafafa",
-  },
-  chargeText: {
-    fontSize: 18,
-    color: "#333",
   },
   titleContainer: {
     flexDirection: "row",
@@ -217,5 +435,15 @@ const styles = StyleSheet.create({
   },
   parkingBtn: {
     width: "100%",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    padding: 25,
+    width: 300,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  backdrop: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });

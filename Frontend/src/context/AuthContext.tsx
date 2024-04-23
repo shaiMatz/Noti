@@ -96,8 +96,8 @@ export const AuthProvider = ({ children }: any) => {
           accessToken: null,
           authenticated: false,
         });
-        await SecureStore.deleteItemAsync(REFRESH_KEY);
-        await SecureStore.deleteItemAsync(ACCESS_KEY);
+      /*  await SecureStore.deleteItemAsync(REFRESH_KEY);
+        await SecureStore.deleteItemAsync(ACCESS_KEY);*/
     };
     loadToken();
   }, []);
@@ -118,8 +118,7 @@ export const AuthProvider = ({ children }: any) => {
 
       console.log(data);
       if (data.error) {
-        await SecureStore.deleteItemAsync(REFRESH_KEY);
-        await SecureStore.deleteItemAsync(ACCESS_KEY);
+
         return { error: true, message: data.message };
       }
       return data;
@@ -138,8 +137,7 @@ export const AuthProvider = ({ children }: any) => {
       });
       console.log(data);
       if (data.error) {
-        await SecureStore.deleteItemAsync(REFRESH_KEY);
-        await SecureStore.deleteItemAsync(ACCESS_KEY);
+    
         if (data.message === "User not found") {
           return { error: true, message: "User not found. Register first!" };
         }
@@ -152,9 +150,14 @@ export const AuthProvider = ({ children }: any) => {
         accessToken: data.accessToken,
         authenticated: true,
       });
-      await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
-      await SecureStore.setItemAsync(ACCESS_KEY, data.accessToken);
+      if (data.refreshToken && data.accessToken){
+        await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
+        await SecureStore.setItemAsync(ACCESS_KEY, data.accessToken);
 
+      }
+      else
+        console.log("No refresh token found");
+    
       apiClient.defaults.headers.common[
         "authorization"
       ] = `JWT ${data.accessToken}`;
@@ -213,7 +216,10 @@ export const AuthProvider = ({ children }: any) => {
       });
       console.log("Refresh token response:", response.data);
       const { accessToken, refreshToken } = response.data;
-
+      if (!accessToken || !refreshToken) {
+        console.error("Failed to refresh token:", response.data);
+        return null;
+      }
       await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
       await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
       apiClient.defaults.headers.common["authorization"] = `JWT ${accessToken}`;

@@ -68,6 +68,8 @@ describe("Post Test", () => {
         content: "This is a test post",
         location: "New York",
         image: "test.jpg",
+        longitude: -74.0060,
+        latitude: 40.7128
       });
     expect(res.statusCode).toEqual(201);
   });
@@ -103,8 +105,8 @@ describe("Post Test", () => {
     console.log("get post by location test");
     const accessToken =user.accessToken;
     const res = await request(app)
-      .get(`/post/location/New York`)
-      .set("authorization", "JWT " + accessToken);
+    .get(`/post/location?longitude=-74.0060&latitude=40.7128`)
+    .set("authorization", "JWT " + accessToken);
     expect(res.statusCode).toEqual(200);
   });
   test("Delete Post", async () => {
