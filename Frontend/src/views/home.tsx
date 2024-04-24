@@ -15,6 +15,7 @@ import {
   SafeAreaView,
   View,
   StyleSheet,
+  AppState ,
   TouchableOpacity,
   Linking,
 } from "react-native";
@@ -26,7 +27,8 @@ import { format, set } from "date-fns";
 import SpinningTimer from "../components/SpinningTimer";
 import { requestLocationPermissions, startLocationUpdates, stopLocationUpdates } from "../services/LocationService";
 import * as SecureStore from 'expo-secure-store';
-import  {scheduleNotification}  from '../services/NotificationService';
+import  {scheduleNotification, setupNotificationHandler}  from '../services/NotificationService';
+import * as Notifications from 'expo-notifications';
 
 const TIMER_STORAGE_KEY = 'TIMER_START_TIME';
 
@@ -69,6 +71,7 @@ const getGreetingTime = (date: { getHours: () => any }) => {
   return "Good evening";
 };
 
+
 export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -108,7 +111,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
 
     checkTimer();
     fetchUserData();
-    scheduleNotification();
+    setupNotificationHandler();
     requestLocationPermissions();
   }, []);
 
@@ -143,6 +146,26 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       }
     };
   }, [timerStart]);
+
+  Notifications.addNotificationResponseReceivedListener(response => {
+    console.log('Notification response received:', response);
+  
+    const actionIdentifier = response.actionIdentifier;
+    if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
+      // User tapped on the notification itself
+            //open the app if closed or in background
+
+      console.log("Notification tapped, opening app...");
+
+      // You will need to implement this function
+    } else if (actionIdentifier === 'turn-off-action') {
+      // User tapped on 'Turn Off Now' action
+      console.log("Turn Off Now action button tapped, stopping timer...");
+      handleReminderToggle(); // Implement this as well
+    }
+    // Add more actions as needed
+  });
+
 
   const updateTimerTime = async () => {
     const startTimeString = await SecureStore.getItemAsync(TIMER_STORAGE_KEY);
@@ -234,7 +257,11 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       visible={menuVisible}
       onBackdropPress={toggleMenu}
     >
-      <MenuItem accessoryLeft={InfoIcon} title="About" />
+      <MenuItem accessoryLeft={InfoIcon}  title="My Profile"
+    onPress={() => {
+      setMenuVisible(false);
+      navigation.navigate('MyProfile', { user: user });
+    }}/>
       <MenuItem accessoryLeft={LogoutIcon} title="Logout" onPress={logout} />
     </OverflowMenu>
   );

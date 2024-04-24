@@ -6,9 +6,10 @@ import { HomeScreen } from "./home";
 import { ParkingScreen } from "./parkingPost";
 import Login from "./login";
 import Register from "./register";
+import MyProfile  from "./myProfile";
 import {UploadPost} from "./uploadPost";
 import { AuthProvider, useAuth } from "../context/AuthContext";
-
+import { IUser } from "../models/user_model";
 const { Navigator, Screen } = createNativeStackNavigator();
 
 const HomeNavigator = () => {
@@ -24,6 +25,10 @@ const HomeNavigator = () => {
           />
           <Screen name="Parking" component={ParkingScreen} />
           <Screen name="UploadPost" component={UploadPost} />
+          <Screen
+            name="MyProfile" component={MyProfile}
+            initialParams={{ user: null }}
+          />
         </>
       ) : (
         <>

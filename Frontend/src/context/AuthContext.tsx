@@ -57,12 +57,15 @@ export const AuthProvider = ({ children }: any) => {
                 "Retrying original request with new token, accessToken: ",
                 accessToken
               );
+
               originalRequest.headers["authorization"] = `JWT ${accessToken}`; // Set the header for the retried request
               /*const refreshkey = await SecureStore.getItemAsync(REFRESH_KEY);
               originalRequest.data = { refreshToken: refreshkey };*/
               return apiClient(originalRequest); // Retry the original request with the new token
             } else {
               console.log("Failed to refresh token");
+              await SecureStore.deleteItemAsync(REFRESH_KEY);
+              await SecureStore.deleteItemAsync(ACCESS_KEY);
               return Promise.reject(error);
             }
           } catch (refreshError) {
@@ -91,11 +94,14 @@ export const AuthProvider = ({ children }: any) => {
         apiClient.defaults.headers.common[
           "authorization"
         ] = `JWT ${accessToken}`;
-      } else
+      } else{
         setAuthState({
           accessToken: null,
           authenticated: false,
         });
+        await SecureStore.deleteItemAsync(REFRESH_KEY);
+        await SecureStore.deleteItemAsync(ACCESS_KEY);
+      }
       /*  await SecureStore.deleteItemAsync(REFRESH_KEY);
         await SecureStore.deleteItemAsync(ACCESS_KEY);*/
     };
@@ -207,6 +213,7 @@ export const AuthProvider = ({ children }: any) => {
       await SecureStore.deleteItemAsync(ACCESS_KEY);
       return null; // You might want to handle this more gracefully
     }
+  
     try {
       apiClient.defaults.headers.common["authorization"] = `JWT ${refreshKey}`;
       console.log("Refresh token:", refreshKey);
@@ -223,6 +230,7 @@ export const AuthProvider = ({ children }: any) => {
       await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
       await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
       apiClient.defaults.headers.common["authorization"] = `JWT ${accessToken}`;
+      
       setAuthState({
         accessToken,
         authenticated: true,

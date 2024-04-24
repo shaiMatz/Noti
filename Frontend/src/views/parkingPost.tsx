@@ -98,7 +98,7 @@ export const ParkingScreen = ({ navigation }: { navigation: any }) => {
           <List
             data={posts}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => item.id || `post-${index}`}
           />
         ) : (
           <Text category="p1">No posts found in this location.</Text>
