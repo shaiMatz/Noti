@@ -95,7 +95,6 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
               placeholder="Password"
               value={password}
               style={styles.input}
-              caption={renderCaption}
               accessoryRight={renderIcon}
               secureTextEntry={secureTextEntry}
               onChangeText={(nextValue) => setPassword(nextValue)}

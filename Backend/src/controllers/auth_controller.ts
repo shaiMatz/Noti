@@ -12,40 +12,46 @@ interface RequestBody {
 
 const register = async (req: Request, res: Response): Promise<void> => {
   console.log("Register route");
-  const email = req.body.email;
+  const { email, password, firstName, lastName, profilePicture, carType } = req.body;
+
+  if (!email || !password || !firstName || !lastName) {
+    return sendError(res, "Missing required fields");
+  }
+
   try {
-    let user = await User.findOne({ email: email });
-    console.log("user:", user);
-    if (user) {
-      res.status(400).json({ message: "User already exists" });
+    let existingUser = await User.findOne({ email: email });
+    console.log("user:", existingUser);
+    if (existingUser) {
+       res.status(400).json({ message: "User already exists" });
     }
   } catch (err) {
     return sendError(res);
   }
-  const password = req.body.password;
-  const firstName = req.body.firstName;
-  const lastName = req.body.lastName;
-  if (!email || !password || !firstName || !lastName) {
-    return sendError(res);
-  }
+  
   console.log("user:", email, password, firstName, lastName);
   try {
     let salt = await bcrypt.genSalt(10);
     let hashedPassword = await bcrypt.hash(password, salt);
-    const user = new User({
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
       passwordHash: hashedPassword,
+      profilePicture: profilePicture || '',  // Provide a default or let it be undefined based on your model requirements
+      level: 1,
+      points: 0,
+      carType: carType || 'Unknown',  // Provide a default or let it be undefined
+      tokens: []
     });
-    let newUser = await user.save();
-    console.log("newUser:", newUser);
-    res
-      .status(200)
-      .json({ message: "User created successfully", data: newUser });
-  } catch (error) {
-    sendError(res, "failed to create user");
-  }
+    const savedUser = await newUser.save();
+    console.log("newUser:", savedUser);
+    res.status(201).json({
+      message: "User created successfully",
+      data: savedUser
+    });
+   } catch (error) {
+    console.error("Error saving user:", error);
+    sendError(res, "Failed to create user");  }
 };
 
 function sendError(res, msg = "Invalid request") {

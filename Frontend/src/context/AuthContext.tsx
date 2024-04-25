@@ -10,7 +10,10 @@ interface AuthProps {
     firstName: string,
     lastName: string,
     email: string,
-    password: string
+    password: string,
+    profileImage: string,
+    carType?: string
+
   ) => Promise<any>;
   onLogin?: (email: string, password: string) => Promise<any>;
   onLogout?: () => Promise<any>;
@@ -112,7 +115,9 @@ export const AuthProvider = ({ children }: any) => {
     firstName: string,
     lastName: string,
     email: string,
-    password: string
+    password: string,
+    profileImage: string = '../../assets/default_avatar.png', 
+    carType: string = 'Unknown'
   ) => {
     try {
       const { data } = await apiClient.post(`${API_URL}/auth/register`, {
@@ -120,6 +125,8 @@ export const AuthProvider = ({ children }: any) => {
         lastName,
         email,
         password,
+        profileImage,
+        carType,
       });
 
       console.log(data);

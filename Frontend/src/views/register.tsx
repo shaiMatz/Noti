@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {useAuth} from '../context/AuthContext';
+import { useAuth } from "../context/AuthContext";
 
 import {
   Button,
@@ -11,7 +11,7 @@ import {
   IconElement,
   Spinner,
   TopNavigation,
-  TopNavigationAction
+  TopNavigationAction,
 } from "@ui-kitten/components";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -24,7 +24,10 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  Modal,
 } from "react-native";
+import ImageOptionsModal from "../components/pickImage";
+import { CarData } from "../models/car_model";
 
 const AlertIcon = () => (
   <Icon
@@ -33,9 +36,7 @@ const AlertIcon = () => (
     name="alert-circle-outline"
   />
 );
-const BackIcon = (props:any) => (
-  <Icon {...props} name='arrow-back' />
-);
+const BackIcon = (props: any) => <Icon {...props} name="arrow-back" />;
 const uploadIcon = () => (
   <Icon style={styles.icon} fill="#8F9BB3" name="upload-outline" />
 );
@@ -47,24 +48,14 @@ const AddIcon = () => (
   <Icon style={styles.smallIcon} fill="#000" name="plus-outline" />
 );
 
-const renderAccessoryIcon = (name:any, handler
-  :any
-) => (
+const renderAccessoryIcon = (name: any, handler: any) => (
   <TouchableWithoutFeedback onPress={handler}>
     <Icon style={styles.icon} fill="#00000050" name={name} />
   </TouchableWithoutFeedback>
 );
-const carData = [
-  { id: "car1", label: "Coupe", image: require("../../assets/car1.png") },
-  { id: "car2", label: "SUV", image: require("../../assets/car2.png") },
-  { id: "car3", label: "Convertible", image: require("../../assets/car3.png") },
-  { id: "car4", label: "Station", image: require("../../assets/car4.png") },
-  { id: "car5", label: "Minivan", image: require("../../assets/car5.png") },
-  { id: "car6", label: "Crossover", image: require("../../assets/car6.png") },
-  { id: "car7", label: "Hatchback", image: require("../../assets/car7.png") },
-  { id: "car8", label: "Sedan", image: require("../../assets/car8.png") },
-  { id: "car9", label: "Pickup Truck", image: require("../../assets/car9.png") },
-];
+
+const carData = CarData
+
 export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -75,95 +66,81 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
   const [isLoading, setIsLoading] = useState(false);
   const [isContinue, setIsContinue] = useState(true);
   const [selectedCar, setSelectedCar] = useState(null);
-  const {onLogin, onRegister} = useAuth();
+  const [modalVisible, setModalVisible] = useState(false);
+  const { onLogin, onRegister } = useAuth();
   const theme = useTheme();
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
   };
-  const handleCarSelect = (id:any) => {
+  const handleCarSelect = (id: any) => {
     setSelectedCar(id);
   };
-  const login = async() => {
+  const login = async () => {
     console.log("Login function");
     const result = await onLogin!(email, password);
-    console.log("Result: ",result);
-    if(!result.error){
-      console.log("Login successful, userId: ",result.userId);
-      
-      navigation.navigate({
-        name: 'Home',
-        merge: true,
-      });    }
-    else{
-      console.log("Login failed");
-      alert("Login failed\n"+result.message);
-    }
+    console.log("Result: ", result);
+    if (!result.error) {
+      console.log("Login successful, userId: ", result.userId);
 
+      navigation.navigate({
+        name: "Home",
+        merge: true,
+      });
+    } else {
+      console.log("Login failed");
+      alert("Login failed\n" + result.message);
+    }
   };
   const handleContinue = async () => {
-    if (selectedCar) {
-      const result = await onRegister!(
-        firstName,
-        lastName,
-        email,
-        password
-  
-      );
-      if(result && result.error){
-        Alert.alert("Registration Failed", result.msg);
-      }
-      else{
-       login();
-      }
-    } else {
-      alert("Please select a car type to continue.");
-    }
-  };
-  const pickImage = async () => {
-    setIsLoading(true);
-    try {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
-
-      if (result.canceled) {
-        Alert.alert("Image Upload", "You did not select any image.");
-        setIsLoading(false);
-      } else {
-        const uri =
-          result.assets && result.assets.length > 0
-            ? result.assets[0].uri
-            : null;
-        if (uri) {
-          setProfileImage(uri);
-        } else {
-          Alert.alert("Image Upload Error", "Failed to retrieve image URI.");
-        }
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error(error);
+    if (!selectedCar) {
       Alert.alert(
-        "Image Upload Failed",
-        "An unexpected error occurred while trying to upload the image."
+        "Car Selection Required",
+        "Please select a car type to continue."
       );
-      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    console.log("Registering user, userdata: ", {
+      firstName,
+      lastName,
+      email,
+      password,
+      profileImage,
+      selectedCar,
+    });
+ 
+    const result = await onRegister!(
+      firstName,
+      lastName,
+      email,
+      password,
+      profileImage ? profileImage : "../../assets/default_avatar.png",
+      selectedCar
+    );
+    setIsLoading(false);
+
+    if (result.error) {
+      Alert.alert("Registration Failed", result.message);
+    } else {
+      login();
     }
   };
+
+  
   const ImagePlaceholder = () => (
-    <TouchableOpacity style={styles.profilePlaceholder} onPress={pickImage}>
+    <TouchableOpacity style={styles.profilePlaceholder} onPress={() => setModalVisible(true)} >
       <AddIcon />
     </TouchableOpacity>
   );
 
   const ProfileImage = () => (
-    <TouchableOpacity onPress={pickImage}>
-      {profileImage ? (<Image source={{ uri: profileImage }} style={styles.profileImage} />
-     ):(<ImagePlaceholder/>)}
+    <TouchableOpacity onPress={() => setModalVisible(true)}>
+      {profileImage ? (
+        <Image source={{ uri: profileImage }} style={styles.profileImage} />
+      ) : (
+        <ImagePlaceholder />
+      )}
       <EditIcon />
     </TouchableOpacity>
   );
@@ -179,6 +156,10 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
 
   const signUp = () => {
     console.log("continue function");
+    if (!firstName || !lastName || !email || !password) {
+      alert("All fields are required");
+      return;
+    }
     setIsContinue(false);
   };
   const navigateBack = () => {
@@ -191,6 +172,7 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+
       <Layout style={{ flex: 1, justifyContent: "space-between" }}>
         {isContinue ? (
           <>
@@ -254,47 +236,65 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
                 Sign In
               </Text>
             </View>
+            <ImageOptionsModal
+  modalVisible={modalVisible}
+  setModalVisible={setModalVisible}
+  setProfileImage={setProfileImage}
+/>
+
           </>
         ) : (
-          <SafeAreaView style={{ flex: 1,paddingTop:50 ,backgroundColor:theme['background-basic-color-1'] }}>
-          <TopNavigation title='Choose Your Car Type' alignment='center' accessoryLeft={BackAction} />
-     
-          <View style={styles.car_container}>
+          <SafeAreaView
+            style={{
+              flex: 1,
+              paddingTop: 50,
+              backgroundColor: theme["background-basic-color-1"],
+            }}
+          >
+            <TopNavigation
+              title="Choose Your Car Type"
+              alignment="center"
+              accessoryLeft={BackAction}
+            />
 
-            <ScrollView contentContainerStyle={styles.grid}>
-              {carData.map((car) => (
-                <TouchableOpacity
-                  key={car.id}
-                  style={[
-                    styles.card,
-                    selectedCar === car.id && styles.cardSelected,
-                  ]}
-                  onPress={() => handleCarSelect(car.id)}
+            <View style={styles.car_container}>
+              <ScrollView contentContainerStyle={styles.grid}>
+                {carData.map((car) => (
+                  <TouchableOpacity
+                    key={car.id}
+                    style={[
+                      styles.card,
+                      selectedCar === car.id && styles.cardSelected,
+                    ]}
+                    onPress={() => handleCarSelect(car.id)}
+                  >
+                    <Image
+                      source={car.image}
+                      style={styles.carImage}
+                      resizeMode="contain"
+                    />
+                    <Text category="c1" style={styles.label}>
+                      {car.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <View
+                style={{
+                  marginTop: 20,
+                  backgroundColor: "#fff",
+                  marginBottom: 180,
+                }}
+              >
+                <Button
+                  size="small"
+                  style={styles.btn}
+                  onPress={handleContinue}
                 >
-                  <Image
-                    source={car.image}
-                    style={styles.carImage}
-                    resizeMode="contain"
-                  />
-                  <Text category="c1" style={styles.label}>
-                    {car.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <View
-              style={{
-                marginTop: 20,
-                backgroundColor: "#fff",
-                marginBottom: 180,
-              }}
-            >
-              <Button size="small" style={styles.btn} onPress={handleContinue}>
-                Sign Up
-              </Button>
+                  Sign Up
+                </Button>
+              </View>
             </View>
-            
-          </View>
           </SafeAreaView>
         )}
       </Layout>
@@ -426,11 +426,12 @@ const styles = StyleSheet.create({
     width: 130,
     height: 130, // Fixed height for uniformity
     resizeMode: "cover",
-
   },
   label: {
     fontSize: 16,
   },
+
+
 });
 
 export default SignUp;
