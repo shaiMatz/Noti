@@ -11,16 +11,19 @@ import {
   List,
   useTheme,
   AnimationConfig,
+  OverflowMenu,
+  MenuItem,
 } from "@ui-kitten/components";
 import * as Location from "expo-location";
-import { getPostsByLocation } from "../api/apiPost";
+import { deletePost, getPostsByUser } from "../api/apiPost";
 import { IconAnimationRegistry } from "@ui-kitten/components/ui/icon/iconAnimation";
 import { Post } from "../models/post_model";
 import { PostComponent } from "../components/post";
 
 const BackIcon = (props: any) => <Icon {...props} name="arrow-back" />;
+const MoreIcon = (props: any) => <Icon {...props} name="more-vertical" />;
 
-export const ParkingScreen = ({
+export const ParkingHistory = ({
   navigation,
   route,
 }: {
@@ -32,33 +35,22 @@ export const ParkingScreen = ({
   const theme = useTheme();
   const { user } = route.params;
 
+  console.log(user);
+
   useEffect(() => {
-    const fetchLocationAndPosts = async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission Denied",
-          "Permission to access location was denied"
-        );
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      const { longitude, latitude } = location.coords;
-      console.log("Longitude: ", longitude);
-      console.log("Latitude: ", latitude);
-
-      const res = fetchPostsByLocation(longitude, latitude);
+    const fetchPosts = async () => {
+      const res = fetchPostsByUser(user._id);
       console.log(res);
     };
 
-    fetchLocationAndPosts();
-  }, []);
+    fetchPosts();
+  }, [user._id]);
 
-  const fetchPostsByLocation = async (longitude: number, latitude: number) => {
+  const fetchPostsByUser = async (userId: string) => {
     try {
-      console.log("Fetching posts by location");
-      const fetchedPosts = await getPostsByLocation(longitude, latitude);
+      console.log("Fetching posts by user");
+      const fetchedPosts = await getPostsByUser(userId);
+      
       setPosts(fetchedPosts);
       setLoading(false);
     } catch (error) {
@@ -75,19 +67,21 @@ export const ParkingScreen = ({
   const handleEditPost = (post: Post) => {
     navigation.navigate("UploadPost", { post });
   };
+
   const BackAction = () => (
     <TopNavigationAction icon={BackIcon} onPress={navigateBack} />
   );
 
-    const deletePost = async (postId: string) => {
-      const newPosts = posts.filter((post) => post._id !== postId);
-      setPosts(newPosts);
-    };
+  const deletePost = async (postId: string) => {
+    const newPosts = posts.filter((post) => post._id !== postId);
+    setPosts(newPosts);
+    }
+
   const renderItem = ({ item }: { item: Post }) => (
     <PostComponent
       item={item}
-      onDelete={deletePost}
       onEdit={handleEditPost}
+      onDelete={deletePost}
       currentUserId={user._id}
     />
   );
@@ -101,7 +95,7 @@ export const ParkingScreen = ({
       }}
     >
       <TopNavigation
-        title="Posts by Location"
+        title="My Posts"
         alignment="center"
         accessoryLeft={BackAction}
       />
@@ -116,7 +110,7 @@ export const ParkingScreen = ({
             keyExtractor={(item, index) => item._id || `post-${index}`}
           />
         ) : (
-          <Text category="p1">No posts found in this location.</Text>
+          <Text category="p1">No posts found.</Text>
         )}
       </Layout>
     </SafeAreaView>
@@ -127,12 +121,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-  },
-  card: {
-    marginVertical: 8,
-  },
-  image: {
-    width: "100%",
-    height: 200,
   },
 });

@@ -13,7 +13,6 @@ interface AuthProps {
     password: string,
     profileImage: string,
     carType?: string
-
   ) => Promise<any>;
   onLogin?: (email: string, password: string) => Promise<any>;
   onLogout?: () => Promise<any>;
@@ -55,22 +54,21 @@ export const AuthProvider = ({ children }: any) => {
           originalRequest._retry = true;
           try {
             const accessToken = await refreshToken();
-            if (accessToken) {
-              console.log(
-                "Retrying original request with new token, accessToken: ",
-                accessToken
-              );
-
-              originalRequest.headers["authorization"] = `JWT ${accessToken}`; // Set the header for the retried request
-              /*const refreshkey = await SecureStore.getItemAsync(REFRESH_KEY);
-              originalRequest.data = { refreshToken: refreshkey };*/
-              return apiClient(originalRequest); // Retry the original request with the new token
-            } else {
-              console.log("Failed to refresh token");
+            if (accessToken == null) {
+              console.log("Failed to refresh token. deleting tokens");
               await SecureStore.deleteItemAsync(REFRESH_KEY);
               await SecureStore.deleteItemAsync(ACCESS_KEY);
               return Promise.reject(error);
             }
+            console.log(
+              "Retrying original request with new token, accessToken: ",
+              accessToken
+            );
+
+            originalRequest.headers["authorization"] = `JWT ${accessToken}`; // Set the header for the retried request
+            /*const refreshkey = await SecureStore.getItemAsync(REFRESH_KEY);
+              originalRequest.data = { refreshToken: refreshkey };*/
+            return apiClient(originalRequest); // Retry the original request with the new token
           } catch (refreshError) {
             console.error("Unable to refresh token:", refreshError);
             return Promise.reject(refreshError);
@@ -87,9 +85,11 @@ export const AuthProvider = ({ children }: any) => {
 
   useEffect(() => {
     const loadToken = async () => {
+
       const accessToken = await SecureStore.getItemAsync(ACCESS_KEY);
 
-      if (accessToken) {
+      if (accessToken!=null) {
+
         setAuthState({
           accessToken,
           authenticated: true,
@@ -97,7 +97,8 @@ export const AuthProvider = ({ children }: any) => {
         apiClient.defaults.headers.common[
           "authorization"
         ] = `JWT ${accessToken}`;
-      } else{
+      } else {
+        console.log("No token found. Logging out.");
         setAuthState({
           accessToken: null,
           authenticated: false,
@@ -116,8 +117,8 @@ export const AuthProvider = ({ children }: any) => {
     lastName: string,
     email: string,
     password: string,
-    profileImage: string = '../../assets/default_avatar.png', 
-    carType: string = 'Unknown'
+    profileImage: string = "../../assets/default_avatar.png",
+    carType: string = "Unknown"
   ) => {
     try {
       const { data } = await apiClient.post(`${API_URL}/auth/register`, {
@@ -131,7 +132,6 @@ export const AuthProvider = ({ children }: any) => {
 
       console.log(data);
       if (data.error) {
-
         return { error: true, message: data.message };
       }
       return data;
@@ -150,7 +150,6 @@ export const AuthProvider = ({ children }: any) => {
       });
       console.log(data);
       if (data.error) {
-    
         if (data.message === "User not found") {
           return { error: true, message: "User not found. Register first!" };
         }
@@ -163,14 +162,11 @@ export const AuthProvider = ({ children }: any) => {
         accessToken: data.accessToken,
         authenticated: true,
       });
-      if (data.refreshToken && data.accessToken){
+      if (data.refreshToken && data.accessToken) {
         await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
         await SecureStore.setItemAsync(ACCESS_KEY, data.accessToken);
+      } else console.log("No refresh token found");
 
-      }
-      else
-        console.log("No refresh token found");
-    
       apiClient.defaults.headers.common[
         "authorization"
       ] = `JWT ${data.accessToken}`;
@@ -216,28 +212,36 @@ export const AuthProvider = ({ children }: any) => {
     const refreshKey = await SecureStore.getItemAsync(REFRESH_KEY);
     if (!refreshKey) {
       console.log("No refresh token found");
-      await SecureStore.deleteItemAsync(REFRESH_KEY);
-      await SecureStore.deleteItemAsync(ACCESS_KEY);
       return null; // You might want to handle this more gracefully
     }
-  
+
     try {
+      let accessT = authState.accessToken;
+      if (accessT == null) {
+        accessT = await SecureStore.getItemAsync(ACCESS_KEY);
+        if (accessT == null) {
+          console.log("No access token found");
+          return null;
+        }
+      }
       apiClient.defaults.headers.common["authorization"] = `JWT ${refreshKey}`;
       console.log("Refresh token:", refreshKey);
-      console.log("access token:", authState.accessToken);
+      console.log("access token:", accessT);
+
       const response = await apiClient.post(`${API_URL}/auth/refreshToken`, {
         refreshKey,
       });
       console.log("Refresh token response:", response.data);
       const { accessToken, refreshToken } = response.data;
       if (!accessToken || !refreshToken) {
+    
         console.error("Failed to refresh token:", response.data);
         return null;
       }
       await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
       await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
       apiClient.defaults.headers.common["authorization"] = `JWT ${accessToken}`;
-      
+
       setAuthState({
         accessToken,
         authenticated: true,
@@ -248,6 +252,8 @@ export const AuthProvider = ({ children }: any) => {
       return null;
     }
   };
+
+
   const value = {
     onRegister: register,
     onLogin: login,

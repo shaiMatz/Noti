@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   SafeAreaView,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 import {
   Icon,
@@ -13,14 +14,31 @@ import {
   TopNavigation,
   useTheme,
   TopNavigationAction,
+  OverflowMenu,
+  MenuItem,
+  IconElement,
+  Button,
 } from "@ui-kitten/components";
 import { IUser, User } from "../models/user_model";
 import { CarData } from "../models/car_model";
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 
-const LevelIcon = (props: any) => <Icon {...props} name="bar-chart-outline" />;
-const PointsIcon = (props: any) => <Icon {...props} name="award-outline" />;
-const BackIcon = (props: any) => <Icon {...props} name="arrow-back" />;
+const continueIcon = (props: any): IconElement => (
+  <Icon
+    style={{ width: 25, height: 25, marginRight: 5 }}
+    fill="#142A37"
+    name="arrow-ios-forward"
+  />
+);
+const LevelIcon = (props: any) => (
+  <Icon fill={"#fff"} {...props} name="bar-chart-outline" />
+);
+const PointsIcon = (props: any) => (
+  <Icon {...props} fill={"#fff"} name="award-outline" />
+);
+const BackIcon = (props: any) => (
+  <Icon {...props} fill={"#fff"} name="arrow-back" />
+);
 const carType = CarData;
 export const MyProfile = ({
   navigation,
@@ -29,6 +47,8 @@ export const MyProfile = ({
   navigation: any;
   route: any;
 }) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+
   const { user } = route.params;
   const theme = useTheme();
 
@@ -44,12 +64,65 @@ export const MyProfile = ({
       ? { uri: user.profilePicture }
       : require("../../assets/default_avatar.png"); // Directly use require for static images
   const navigateBack = () => {
-    navigation.goBack();
+    navigation.navigate("Home", { user });
   };
+  const MenuIcon = (props: any): IconElement => (
+    <Icon
+      style={{ width: 15, height: 15, marginRight: 5 }}
+      fill="#fff"
+      name="more-vertical"
+    />
+  );
 
+  const ProfileIcon = (props: any): IconElement => (
+    <Icon
+      style={{ width: 15, height: 15, marginRight: 5 }}
+      fill="#8F9BB3"
+      name="person-outline"
+    />
+  );
+
+  const DeleteIcon = (props: any): IconElement => (
+    <Icon
+      style={{ width: 15, height: 15, marginRight: 5 }}
+      fill="#8F9BB3"
+      name="person-delete-outline"
+    />
+  );
   const BackAction = () => (
     <TopNavigationAction icon={BackIcon} onPress={navigateBack} />
   );
+
+  const renderMenuAction = (): React.ReactElement => (
+    <TopNavigationAction icon={MenuIcon} onPress={toggleMenu} />
+  );
+
+  const toggleMenu = (): void => {
+    setMenuVisible(!menuVisible);
+  };
+
+  const navigateParking = () => {
+    navigation.navigate("ParkingHistory", { user });
+  };
+
+  const renderOverflowMenuAction = (): React.ReactElement => (
+    <OverflowMenu
+      anchor={renderMenuAction}
+      visible={menuVisible}
+      onBackdropPress={toggleMenu}
+    >
+      <MenuItem
+        accessoryLeft={ProfileIcon}
+        title="Edit Profile"
+        onPress={() => {
+          setMenuVisible(false);
+          navigation.navigate("EditProfile", { user: user });
+        }}
+      />
+      <MenuItem accessoryLeft={DeleteIcon} title="Delete Profile" />
+    </OverflowMenu>
+  );
+
   return (
     <SafeAreaView
       style={{
@@ -57,15 +130,23 @@ export const MyProfile = ({
       }}
     >
       <LinearGradient
-        colors={["#3aedcd","#3aedcd70","#FFFFFF","#FFFFFF"]}
+        colors={["#3aedcd", "#3aedcd70", "#3aedcd70", "#FFFFFF", "#FFFFFF"]}
         style={styles.linearGradient}
       >
         <ScrollView style={styles.scroll}>
           <View style={styles.container}>
             <TopNavigation
-              title="My Profile"
+              title={(evaProps) => (
+                <Text
+                  {...evaProps}
+                  style={[evaProps?.style, { color: "white" }]}
+                >
+                  My Profile
+                </Text>
+              )}
               alignment="center"
               accessoryLeft={BackAction}
+              accessoryRight={renderOverflowMenuAction}
               style={{ marginTop: 50, backgroundColor: "transparent" }}
             />
           </View>
@@ -77,28 +158,51 @@ export const MyProfile = ({
             <Text style={styles.email}>{user ? user.email : "Loading..."}</Text>
             <View style={styles.cardsCon}>
               <View style={styles.card}>
-                <LevelIcon style={styles.icon} />
-
                 <Text style={styles.cardCon}> {user ? user.level : "N/A"}</Text>
-                <Text style={styles.text}>Level</Text>
+
+                <View style={styles.actions}>
+                  <LevelIcon style={styles.icon} />
+
+                  <Text style={styles.text}>Level</Text>
+                </View>
               </View>
 
               <View style={styles.card}>
-                <PointsIcon style={styles.icon} />
+                <Text style={styles.cardCon}>{user ? user.points : "N/A"}</Text>
+                <View style={styles.actions}>
+                  <PointsIcon style={styles.icon} />
 
-                <Text style={styles.cardCon}>
-                  {" "}
-                  {user ? user.points : "N/A"}
-                </Text>
-                <Text style={styles.text}>Points</Text>
+                  <Text style={styles.text}>Points</Text>
+                </View>
               </View>
             </View>
           </View>
+
           <View style={styles.cardContainer}>
             <Image source={carImage} style={styles.carImage} />
             <Text style={styles.cardtext}>{user ? user.carType : "N/A"}</Text>
           </View>
         </ScrollView>
+        <View
+          style={[
+            styles.footer,
+            {
+              backgroundColor: theme["background-basic-color-3"],
+              borderTopColor: theme["background-basic-color-4"],
+            },
+          ]}
+        >
+          <Button
+            size="large"
+            appearance="ghost"
+            status="info"
+            style={styles.parkingBtn}
+            accessoryRight={continueIcon}
+            onPress={navigateParking}
+          >
+            See My Parking History
+          </Button>
+        </View>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -121,14 +225,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   icon: {
-    width: 32,
-    height: 32,
+    width: 16,
+    height: 16,
     marginRight: 8,
+    color: "#fff",
   },
   avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 120,
+    height: 120,
+    borderRadius: 65,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: "#3aedcd",
@@ -141,7 +246,7 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 16,
     color: "#fff",
-    marginBottom: 20,
+    marginBottom: 5,
   },
   card: {
     margin: 15,
@@ -153,7 +258,7 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     justifyContent: "space-around",
-    margin: 20,
+    alignItems: "center",
   },
   cardCon: {
     fontSize: 20,
@@ -167,10 +272,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   cardtext: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#000",
+    backgroundColor: "#00000020",
     textAlign: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   cardsCon: {
     display: "flex",
@@ -180,8 +297,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cardContainer: {
-    margin: 15,
-    padding: 10,
     alignItems: "center",
     borderRadius: 10,
   },
@@ -194,6 +309,18 @@ const styles = StyleSheet.create({
     width: 350,
     height: 250,
     resizeMode: "contain",
+    marginBottom: 10,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    borderTopWidth: 1,
+    alignItems: "center",
+
+  },
+  parkingBtn: {
+    width: "100%",
   },
 });
 

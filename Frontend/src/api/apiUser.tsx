@@ -14,7 +14,7 @@ export const getUser = async (): Promise<User> => {
 // Function to update user data
 export const editUser = async ( userData: Partial<User>): Promise<User> => {
     try {
-        const response = await apiClient.put<User>(`/user}`, userData);
+        const response = await apiClient.put(`/user`, userData);
         return response.data;
     } catch (error) {
         throw new Error('Error updating user data');
@@ -28,5 +28,17 @@ export const deleteUser = async (): Promise<{ message: string }> => {
         return response.data;
     } catch (error) {
         throw new Error('Error deleting user');
+    }
+};
+
+// Function to add the user points
+export const increasePoints = async (): Promise<User> => {
+    try {
+        const response = await apiClient.get<User>(`/user/points`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw new Error('Error increasing points');
+        
     }
 };

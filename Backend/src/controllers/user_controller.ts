@@ -68,6 +68,39 @@ class userController extends createController<IUser> {
       res.status(500).json({ message: (error as Error).message });
     }
   }
+
+
+
+  // Increase points for every stop of the reminder
+  async increasePointsForReminder(
+    req: AuthRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      const userId = req.user._id;
+
+      // Find the user
+      const user = await User.findById(userId);
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      const requiredPoints = user.level * 100;
+      user.points += 10;
+      if (user.points >= requiredPoints) {
+        user.level += 1;
+        console.log("Level increased: ", user.level);
+      }
+
+      // Save the updated user
+      await user.save();
+
+      res.status(200).json({ message: "Points increased for reminder" });
+      console.log("Points increased for reminder: ", user.points);
+    } catch (error) {
+      res.status(500).json({ message: (error as Error).message });
+    }
+  }
 }
 
 export default new userController();

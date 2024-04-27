@@ -6,7 +6,11 @@ import authenticate from "../common/auth_middleware";
 router.get("/", authenticate, UserController.getUser.bind(UserController));
 router.put("/", authenticate, UserController.editUser.bind(UserController));
 router.delete("/", authenticate, UserController.deleteUser.bind(UserController));
-
+router.get(
+  "/points",
+  authenticate,
+  UserController.increasePointsForReminder.bind(UserController)
+);
 
 
 

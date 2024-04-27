@@ -2,12 +2,14 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { HomeScreen } from "./home";
-import { ParkingScreen } from "./parkingPost";
-import Login from "./login";
-import Register from "./register";
-import MyProfile  from "./myProfile";
-import {UploadPost} from "./uploadPost";
+import { HomeScreen } from "../views/home";
+import { ParkingScreen } from "../views/parkingPost";
+import Login from "../views/login";
+import Register from "../views/register";
+import MyProfile from "../views/myProfile";
+import EditProfile from "../views/editProfile";
+import { UploadPost } from "../views/uploadPost";
+import { ParkingHistory } from "../views/parkingHistory";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { IUser } from "../models/user_model";
 const { Navigator, Screen } = createNativeStackNavigator();
@@ -22,13 +24,21 @@ const HomeNavigator = () => {
           <Screen
             name="Home"
             component={HomeScreen}
+            initialParams={{ user: null }}
           />
           <Screen name="Parking" component={ParkingScreen} />
           <Screen name="UploadPost" component={UploadPost} />
           <Screen
-            name="MyProfile" component={MyProfile}
+            name="MyProfile"
+            component={MyProfile}
             initialParams={{ user: null }}
           />
+          <Screen
+            name="EditProfile"
+            component={EditProfile}
+            initialParams={{ user: null }}
+          />
+          <Screen name="ParkingHistory" component={ParkingHistory} />
         </>
       ) : (
         <>

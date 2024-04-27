@@ -22,8 +22,9 @@ import {
   TopNavigationAction,
   TopNavigation,
 } from "@ui-kitten/components";
-import { createPost } from "../api/apiPost";
+import { createPost, updatePost } from "../api/apiPost";
 import * as Location from "expo-location";
+import ImageOptionsModal from "../components/pickImage";
 
 const postSchema = Yup.object().shape({
   content: Yup.string(),
@@ -37,10 +38,18 @@ const postSchema = Yup.object().shape({
   ),
 });
 const BackIcon = (props: any) => <Icon {...props} name="arrow-back" />;
-export const UploadPost = ({ navigation }: { navigation: any }) => {
-  const [image, setImage] = useState<string | null>(null);
+export const UploadPost = ({
+  navigation,
+  route,
+}: {
+  navigation: any;
+  route: any;
+}) => {
+  const post = route.params?.post;
+  const [image, setImage] = useState<string | null>(post?.image || null);
   const [location, setLocation] = useState<Location.LocationObject>();
   const [locationName, setLocationName] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const theme = useTheme();
 
@@ -52,47 +61,45 @@ export const UploadPost = ({ navigation }: { navigation: any }) => {
     <TopNavigationAction icon={BackIcon} onPress={navigateBack} />
   );
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Sorry, we need camera roll permissions to make this work!");
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
   const getLocation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "Permission to access location was denied"
-      );
-      return;
-    }
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Permission to access location was denied"
+        );
+        return;
+      }
 
-    let location = await Location.getCurrentPositionAsync({});
-    setLocation(location);
-    const [result] = await Location.reverseGeocodeAsync(location.coords);
-    if (result) {
-      setLocationName(
-        `${result.name}, ${result.street}, ${result.city}, ${result.country}`
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+
+      try {
+        const [result] = await Location.reverseGeocodeAsync(location.coords);
+        if (result) {
+          setLocationName(
+            `${result.name}, ${result.street}, ${result.city}, ${result.country}`
+          );
+        }
+      } catch (geocodeError) {
+        console.error("Geocoding error:", geocodeError);
+        Alert.alert(
+          "Location Error",
+          "Unable to fetch the address at this time. Please check your network connection or try again later."
+        );
+      }
+    } catch (error) {
+      console.error("Location error:", error);
+      Alert.alert(
+        "Location Error",
+        "Unable to fetch your location. Please check your settings and try again."
       );
     }
   };
 
   useEffect(() => {
-    getLocation();
+    if (!post) getLocation();
   }, []);
 
   return (
@@ -104,35 +111,50 @@ export const UploadPost = ({ navigation }: { navigation: any }) => {
       }}
     >
       <TopNavigation
-        title="Posts by Location"
+        title={post ? "Edit Post" : "Create Post"}
         alignment="center"
         accessoryLeft={BackAction}
       />
+
       <ScrollView contentContainerStyle={styles.container}>
         <Formik
-          initialValues={{ content: "", image: "" }}
+          initialValues={{
+            content: post?.content || "",
+            image: post?.image || "",
+          }}
           validationSchema={postSchema}
           onSubmit={(values, { setSubmitting }) => {
             const postData = {
-              content: values.content,
-              image: image,
-              location: locationName,
-            };
-
-            createPost({
-              ...postData,
-              location: locationName || "",
-              longitude: location?.coords?.latitude ?? 0,
-              latitude: location?.coords?.latitude ?? 0,
+              content: values.content || undefined,
               image: image || undefined,
-            })
+              location: locationName || undefined,
+            };
+            const action = post
+              ? () => updatePost(post._id, postData)
+              : () =>
+                  createPost({
+                    ...postData,
+                    location: locationName || "",
+                    longitude: location?.coords?.latitude ?? 0,
+                    latitude: location?.coords?.latitude ?? 0,
+                    image: image || undefined,
+                  });
+            action()
               .then(() => {
-                Alert.alert("Success", "Post created successfully!");
+                Alert.alert(
+                  "Success",
+                  `Post ${post ? "updated" : "created"} successfully!`
+                );
                 setSubmitting(false);
                 navigation.navigate("Home");
               })
               .catch((error) => {
-                Alert.alert("Error", `Failed to create post: ${error.message}`);
+                Alert.alert(
+                  "Error",
+                  `Failed to ${post ? "update" : "create"} post: ${
+                    error.message
+                  }`
+                );
                 setSubmitting(false);
               });
           }}
@@ -147,9 +169,33 @@ export const UploadPost = ({ navigation }: { navigation: any }) => {
             setFieldValue,
           }) => (
             <Layout style={styles.form}>
-              <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-                {!image ? (
-                  <React.Fragment>
+              <TouchableOpacity
+                style={styles.imagePicker}
+                onPress={() => setModalVisible(true)}
+              >
+                {image ? (
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={{ uri: image }}
+                      style={styles.image}
+                    />
+                    <TouchableOpacity
+                      style={styles.imageEditIcon}
+                      onPress={() => setModalVisible(true)}
+                    >
+                      <Icon
+                        name="edit-outline"
+                        width={32}
+                        height={32}
+                        fill="#FFF"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.imagePicker}
+                    onPress={() => setModalVisible(true)}
+                  >
                     <Icon
                       name="camera-outline"
                       width={32}
@@ -157,9 +203,7 @@ export const UploadPost = ({ navigation }: { navigation: any }) => {
                       fill="#8F9BB3"
                     />
                     <Text category="s1">Upload Image</Text>
-                  </React.Fragment>
-                ) : (
-                  <Image source={{ uri: image }} style={styles.image} />
+                  </TouchableOpacity>
                 )}
               </TouchableOpacity>
               <Input
@@ -171,20 +215,32 @@ export const UploadPost = ({ navigation }: { navigation: any }) => {
                 multiline
                 status={touched.content && errors.content ? "danger" : "basic"}
                 caption={
-                  touched.content && errors.content ? errors.content : ""
+                  touched.content && typeof errors.content === "string"
+                    ? errors.content
+                    : ""
                 }
               />
-
-              {errors.image && !image && (
+              {errors.image && typeof errors.image === "string" && !image && (
                 <Text style={styles.error}>{errors.image}</Text>
               )}
 
+              {locationName && (
+                <Text category="c1" style={{ marginVertical: 10 }}>
+                  Location: {locationName}
+                </Text>
+              )}
+
               <Button style={styles.button} onPress={() => handleSubmit()}>
-                Create Post
+                {post ? "Update Post" : "Create Post"}
               </Button>
             </Layout>
           )}
         </Formik>
+        <ImageOptionsModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          setProfileImage={setImage}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -205,9 +261,27 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
+    height: "100%",
+    marginTop: 10,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  imageContainer: {
+    position: "relative",
+    width: "100%",
     height: 200,
     marginTop: 10,
     marginBottom: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageEditIcon: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    padding: 8,
+    borderRadius: 20,
   },
   errors: {
     color: "red",

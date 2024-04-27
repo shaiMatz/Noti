@@ -45,19 +45,12 @@ export const createPost = async (
 // Function to update an existing post
 export const updatePost = async (
   postId: string,
-  post: Partial<Post> & { longitude?: number; latitude?: number }
+  updates: { content?: string; image?: string }
 ): Promise<Post> => {
   try {
     const updatedData = {
-      ...post,
-      ...(post.longitude && post.latitude
-        ? {
-            geo: {
-              type: "Point",
-              coordinates: [post.longitude, post.latitude],
-            },
-          }
-        : {}),
+      ...(updates.content ? { content: updates.content } : {}),
+      ...(updates.image ? { image: updates.image } : {}),
     };
     const response = await apiClient.put<Post>(`/post/${postId}`, updatedData);
     return response.data;
@@ -66,6 +59,7 @@ export const updatePost = async (
     throw new Error("Error updating post");
   }
 };
+
 // Function to delete a post
 export const deletePost = async (
   postId: string

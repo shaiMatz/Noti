@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import { Icon } from "@ui-kitten/components";
 import { useAuth } from "../context/AuthContext";
-import { getUser, deleteUser } from "../api/apiUser";
+import { getUser, deleteUser, increasePoints } from "../api/apiUser";
 import { User } from "../models/user_model";
 import { format, set } from "date-fns";
 import SpinningTimer from "../components/SpinningTimer";
@@ -41,11 +41,11 @@ const MenuIcon = (props: any): IconElement => (
   />
 );
 
-const InfoIcon = (props: any): IconElement => (
+const ProfileIcon = (props: any): IconElement => (
   <Icon
     style={{ width: 15, height: 15, marginRight: 5 }}
     fill="#8F9BB3"
-    name="info"
+    name="person-outline"
   />
 );
 
@@ -72,9 +72,10 @@ const getGreetingTime = (date: { getHours: () => any }) => {
 };
 
 
-export const HomeScreen = ({ navigation }: { navigation: any }) => {
+export const HomeScreen = ({ navigation, route }: { navigation: any; route: any }) => {
+  const { user } = route.params;
   const [menuVisible, setMenuVisible] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user1, setUser] = useState<User | null>(user||null);
   const theme = useTheme();
   const [reminderSet, setReminderSet] = useState(false);
   const [timerStart, setTimerStart] = useState(false);
@@ -84,6 +85,16 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isNoPost, setisNoPost] = useState(false);
   const [dynamicGreeting, setDynamicGreeting] = useState(greeting);
+
+   const fetchUserData = async () => {
+     try {
+       const userData = await getUser();
+       console.log("User Data: ", userData);
+       setUser(userData);
+     } catch (error) {
+       console.error(error);
+     }
+   };
 
   useEffect(() => {
     const checkTimer = async () => {
@@ -98,25 +109,12 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
     };
 
    
-
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUser();
-        console.log("User Data: ", userData);
-        setUser(userData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     checkTimer();
     fetchUserData();
     setupNotificationHandler();
     requestLocationPermissions();
   }, []);
 
-
-  
   useEffect(() => {
     const updateGreeting = () => {
       const newGreeting = getGreetingTime(new Date());
@@ -147,25 +145,24 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
     };
   }, [timerStart]);
 
-  Notifications.addNotificationResponseReceivedListener(response => {
-    console.log('Notification response received:', response);
-  
+  Notifications.addNotificationResponseReceivedListener((response) => {
+    console.log("Notification response received:", response);
+
     const actionIdentifier = response.actionIdentifier;
     if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
       // User tapped on the notification itself
-            //open the app if closed or in background
+      //open the app if closed or in background
 
       console.log("Notification tapped, opening app...");
 
       // You will need to implement this function
-    } else if (actionIdentifier === 'turn-off-action') {
+    } else if (actionIdentifier === "turn-off-action") {
       // User tapped on 'Turn Off Now' action
       console.log("Turn Off Now action button tapped, stopping timer...");
       handleReminderToggle(); // Implement this as well
     }
     // Add more actions as needed
   });
-
 
   const updateTimerTime = async () => {
     const startTimeString = await SecureStore.getItemAsync(TIMER_STORAGE_KEY);
@@ -192,7 +189,7 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       .catch((err) => console.error("An error occurred", err));
   };
 
-  const handleReminderToggle =async () => {
+  const handleReminderToggle = async () => {
     if (!reminderSet) {
       requestLocationPermissions().then(startLocationUpdates);
       const startTime = Date.now();
@@ -208,12 +205,13 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       setDynamicGreeting(getGreetingTime(new Date()));
     }
   };
-  const handleTimerClose = () => {
+  const handleTimerClose = async () => {
     setTimerStart(false);
     setReminderSet(false);
     setIsModalVisible(true);
     setisNoPost(true);
-    stopLocationUpdates()
+    stopLocationUpdates();
+    increasePoints().then(()=>fetchUserData())
   };
   const handlePostUpload = () => {
     setIsModalVisible(false);
@@ -229,10 +227,6 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
     // Logic to handle when the user does not want to upload a post
     console.log("Post declined!");
   };
-
-
-
-
 
   const logout = async () => {
     const result = await onLogout!();
@@ -257,16 +251,19 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       visible={menuVisible}
       onBackdropPress={toggleMenu}
     >
-      <MenuItem accessoryLeft={InfoIcon}  title="My Profile"
-    onPress={() => {
-      setMenuVisible(false);
-      navigation.navigate('MyProfile', { user: user });
-    }}/>
+      <MenuItem
+        accessoryLeft={ProfileIcon}
+        title="My Profile"
+        onPress={() => {
+          setMenuVisible(false);
+          navigation.navigate("MyProfile", { user: user||user1 });
+        }}
+      />
       <MenuItem accessoryLeft={LogoutIcon} title="Logout" onPress={logout} />
     </OverflowMenu>
   );
   const navigateParking = () => {
-    navigation.navigate("Parking");
+    navigation.navigate("Parking",{ user: user||user1 });
   };
   const renderTitle = (props: any): React.ReactElement => (
     <View style={styles.titleContainer}>
@@ -289,12 +286,12 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       />
 
       <View style={styles.profileContainer}>
-        <Text category="h4" style={styles.greeting}>
-          {dynamicGreeting}, {user ? user.firstName : "Loading..."}
+        <Text category="h4" style={[styles.greeting, { fontWeight: "bold" }]}>
+          {dynamicGreeting}, {user1 ? user1.firstName : "Loading..."}
         </Text>
         <Text category="h6" style={styles.greeting}>
           {reminderSet
-            ? "Reminder active. Close the app at your set time."
+            ? "Don't forget to close the timer and earn 10 points!"
             : "Want to set a reminder to close the parking app?"}
         </Text>
       </View>
@@ -306,6 +303,13 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
             reminderSet
               ? {}
               : {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowRadius: 6,
+                  shadowOpacity: 0.3,
+
+                  // Elevation for Android
+                  elevation: 5,
                   backgroundColor: theme["color-primary-default"],
                   padding: 15,
                 },
@@ -432,6 +436,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 10,
     marginHorizontal: 10,
+   
   },
   icon: {
     width: 32,

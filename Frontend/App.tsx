@@ -1,6 +1,6 @@
 import React from "react";
 import * as eva from "@eva-design/eva";
-import { AppNavigator } from './src/views/navigation';
+import { AppNavigator } from "./src/components/navigation";
 import {
   ApplicationProvider,
   Layout,
@@ -14,7 +14,7 @@ export default () => (
   <>
     <IconRegistry icons={EvaIconsPack} />
     <ApplicationProvider {...eva} theme={{ ...eva.light, ...theme }}>
-            <AppNavigator/>
+      <AppNavigator />
     </ApplicationProvider>
   </>
 );

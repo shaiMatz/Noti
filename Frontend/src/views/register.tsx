@@ -423,9 +423,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000020",
   },
   carImage: {
-    width: 130,
+    width: 100,
     height: 130, // Fixed height for uniformity
-    resizeMode: "cover",
+    resizeMode: "contain",
+
   },
   label: {
     fontSize: 16,
