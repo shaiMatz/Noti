@@ -17,10 +17,14 @@ import {
   View,
   Image,
 } from "react-native";
+import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 
 const AlertIcon = (): IconElement => (
   <Icon style={{width:15,height:15,marginRight:5}} fill="#8F9BB3" name="alert-circle-outline" />
 );
+
+
+
 
 const googleIcon = () => (
   <Icon style={styles.icon} fill="#ea4335" name="google-outline" />
@@ -30,6 +34,13 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const {onLogin} = useAuth();
+  const configGoogleSignIn = () => {
+GoogleSignin.configure({forceCodeForRefreshToken: true, webClientId:"905433083586-nm0fito9p8on4ceho6ocdtsbedpho00h.apps.googleusercontent.com", offlineAccess: true,});
+};
+
+useEffect(() => {
+    configGoogleSignIn(); // will execute everytime the component mounts
+}, []);
   const toggleSecureEntry = (): void => {
     setSecureTextEntry(!secureTextEntry);
   };
@@ -71,6 +82,27 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
     }
 
   };
+
+
+
+const onGoogleButtonPress = async () => {
+  try {
+    await GoogleSignin.hasPlayServices();
+    const result = await GoogleSignin.signIn();
+    console.log(result);
+  } catch (error:any) {
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      alert('User cancelled the login flow!');
+    } else if (error.code === statusCodes.IN_PROGRESS) {
+      alert('Signin in progress');
+    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      alert('Google Play services not available or outdated!');
+    } else {
+      console.error(error);
+    }
+  }
+};
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -128,15 +160,13 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
           </View>
 
           <View>
-            <Button
-              style={styles.btn2}
-              appearance="outline"
-              status="basic"
-              accessoryLeft={googleIcon}
-              size="small"
-            >
-              Sign In with Google
-            </Button>
+           <GoogleSigninButton
+  size={GoogleSigninButton.Size.Wide}
+  color={GoogleSigninButton.Color.Dark}
+  onPress={() => {
+    onGoogleButtonPress();
+  }}
+/>
           </View>
         </View>
         <View style={styles.signup_contaiter}>

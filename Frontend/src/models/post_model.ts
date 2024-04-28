@@ -1,7 +1,14 @@
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  profilePicture?: string;
+}
+
 // Define the interface for the Post model
 export interface IPost {
   _id: string;
-  userId: string;
+  userId: User;
   content: string;
   location: string;
   image?: string;
@@ -16,7 +23,7 @@ export interface IPost {
 // Implementing the interface with a class
 export class Post implements IPost {
   _id: string;
-  userId: string;
+  userId: User;
   content: string;
   location: string;
   image?: string;

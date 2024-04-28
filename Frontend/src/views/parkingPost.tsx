@@ -58,8 +58,9 @@ export const ParkingScreen = ({
   const fetchPostsByLocation = async (longitude: number, latitude: number) => {
     try {
       console.log("Fetching posts by location");
-      const fetchedPosts = await getPostsByLocation(longitude, latitude);
+      const fetchedPosts = await getPostsByLocation(longitude, latitude) as Post[];
       setPosts(fetchedPosts);
+      console.log("Fetched posts: ", fetchedPosts);
       setLoading(false);
     } catch (error) {
       Alert.alert("Error", "Failed to fetch posts");

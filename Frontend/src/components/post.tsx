@@ -98,9 +98,24 @@ export const PostComponent = ({
         <Image source={{ uri: item.image }} style={styles.image} />
       )}
       <View style={styles.headerContainer}>
-        <Text category="p1">{item.content || ""}</Text>
-        {currentUserId === item.userId && renderOverflowMenuAction()}
+        <View style={styles.userInfoContainer}>
+          {item.userId.profilePicture ? (
+            <Image
+              source={{ uri: item.userId.profilePicture }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <Icon
+              name="person-outline"
+              style={styles.profileImagePlaceholder}
+            />
+          )}
+          <Text category="s1">{`${item.userId.firstName} ${item.userId.lastName}`}</Text>
+        </View>
+
+        {currentUserId === item.userId._id && renderOverflowMenuAction()}
       </View>
+     {item.content ? (<Text category="p1">{item.content || ""}</Text>): null} 
       <Text category="c1">{`Location: ${item.location}`}</Text>
     </Card>
   );
@@ -113,6 +128,24 @@ const styles = StyleSheet.create({
   card: {
     marginVertical: 8,
     borderRadius: 10,
+  },
+  userInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  profileImagePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#c4c4c4",
+    marginRight: 8,
   },
   headerContainer: {
     flexDirection: "row",

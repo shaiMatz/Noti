@@ -120,7 +120,9 @@ class postController extends createController<IPost> {
 
       console.log("getPostByUser test");
       console.log("User ID: ", userId);
-      const posts = await Post.find({ userId: userId }).sort({ createdAt: -1 });;
+      const posts = await Post.find({ userId: userId })
+        .populate("userId", "firstName lastName profilePicture")
+        .sort({ createdAt: -1 });
       res.status(200).json(posts);
       console.log("Posts retrieved successfully: ", posts);
     } catch (error) {
@@ -150,7 +152,9 @@ class postController extends createController<IPost> {
             },
           },
         },
-      }).sort({ createdAt: -1 });;
+      })
+        .populate("userId", "firstName lastName profilePicture")
+        .sort({ createdAt: -1 });
 
       res.status(200).json(posts);
       console.log("Posts retrieved successfully based on location: ", posts);
