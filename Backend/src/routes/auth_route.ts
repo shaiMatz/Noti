@@ -140,4 +140,7 @@ router.post("/logout", authenticate, auth.logout);
  */
 router.post("/refreshToken", auth.refreshToken);
 
+
+router.post("/googleLogin", auth.googleLogin);
+
 export default router;

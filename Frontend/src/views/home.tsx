@@ -403,7 +403,7 @@ export const HomeScreen = ({ navigation, route }: { navigation: any; route: any 
 const styles = StyleSheet.create({
   header: {
     position: "absolute",
-    top: 50,
+    top: 0,
   },
   container: {
     display: "flex",

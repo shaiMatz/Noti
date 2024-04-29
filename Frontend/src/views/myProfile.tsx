@@ -130,7 +130,7 @@ export const MyProfile = ({
       }}
     >
       <LinearGradient
-        colors={["#3aedcd", "#3aedcd70", "#3aedcd70", "#FFFFFF", "#FFFFFF"]}
+        colors={["#FFFFFF", "#3aedcd30", "#3aedcd70","#3aedcd", "#3aedcd70", "#FFFFFF", "#FFFFFF"]}
         style={styles.linearGradient}
       >
         <ScrollView style={styles.scroll}>
@@ -147,7 +147,7 @@ export const MyProfile = ({
               alignment="center"
               accessoryLeft={BackAction}
               accessoryRight={renderOverflowMenuAction}
-              style={{ marginTop: 50, backgroundColor: "transparent" }}
+              style={{  backgroundColor: "transparent" }}
             />
           </View>
           <View style={[styles.header, styles.container]}>

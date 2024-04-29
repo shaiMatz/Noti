@@ -90,7 +90,6 @@ export const ParkingHistory = ({
     <SafeAreaView
       style={{
         flex: 1,
-        paddingTop: 50,
         backgroundColor: theme["background-basic-color-1"],
       }}
     >

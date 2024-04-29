@@ -17,7 +17,7 @@ import {
   View,
   Image,
 } from "react-native";
-import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
+import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 
 const AlertIcon = (): IconElement => (
   <Icon style={{width:15,height:15,marginRight:5}} fill="#8F9BB3" name="alert-circle-outline" />
@@ -33,14 +33,8 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
   const [Email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const {onLogin} = useAuth();
-  const configGoogleSignIn = () => {
-GoogleSignin.configure({forceCodeForRefreshToken: true, webClientId:"905433083586-nm0fito9p8on4ceho6ocdtsbedpho00h.apps.googleusercontent.com", offlineAccess: true,});
-};
+  const {onLogin, onGoogleLogin} = useAuth();
 
-useEffect(() => {
-    configGoogleSignIn(); // will execute everytime the component mounts
-}, []);
   const toggleSecureEntry = (): void => {
     setSecureTextEntry(!secureTextEntry);
   };
@@ -84,22 +78,20 @@ useEffect(() => {
   };
 
 
-
 const onGoogleButtonPress = async () => {
-  try {
-    await GoogleSignin.hasPlayServices();
-    const result = await GoogleSignin.signIn();
-    console.log(result);
-  } catch (error:any) {
-    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-      alert('User cancelled the login flow!');
-    } else if (error.code === statusCodes.IN_PROGRESS) {
-      alert('Signin in progress');
-    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      alert('Google Play services not available or outdated!');
-    } else {
-      console.error(error);
-    }
+  const res =await onGoogleLogin!()
+  console.log("res: ", res);
+  if(!res.error){
+    console.log("Login successful, userId: ",res.userId);
+    
+    navigation.navigate({
+      name: 'Home',
+      merge: true,
+    });
+  }
+  else{
+    console.log("Login failed");
+    alert("Login failed: "+res.message);
   }
 };
 
@@ -166,6 +158,7 @@ const onGoogleButtonPress = async () => {
   onPress={() => {
     onGoogleButtonPress();
   }}
+  style={styles.btn2}
 />
           </View>
         </View>
@@ -247,3 +240,7 @@ const styles = StyleSheet.create({
   },
 });
 export default Login;
+function onGoogleLogin(): any {
+  throw new Error("Function not implemented.");
+}
+

@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import { APIURL } from "../api/client";
 import apiClient from "../api/client";
 import axios from "axios";
+import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 
 interface AuthProps {
   authState?: { accessToken: string | null; authenticated: boolean | null };
@@ -16,6 +17,7 @@ interface AuthProps {
   ) => Promise<any>;
   onLogin?: (email: string, password: string) => Promise<any>;
   onLogout?: () => Promise<any>;
+  onGoogleLogin?: () => Promise<any>;
 }
 
 const REFRESH_KEY = "REFRESH_KEY";
@@ -82,6 +84,15 @@ export const AuthProvider = ({ children }: any) => {
       apiClient.interceptors.response.eject(interceptor);
     };
   }, []);
+
+  const configGoogleSignIn = () => {
+GoogleSignin.configure({forceCodeForRefreshToken: true, webClientId:"905433083586-nm0fito9p8on4ceho6ocdtsbedpho00h.apps.googleusercontent.com", offlineAccess: true,});
+};
+
+useEffect(() => {
+    configGoogleSignIn(); // will execute everytime the component mounts
+}, []);
+
 
   useEffect(() => {
     const loadToken = async () => {
@@ -253,11 +264,55 @@ export const AuthProvider = ({ children }: any) => {
     }
   };
 
+  const onGoogleLogin = async () => {
+try {
+  console.log("Google login");
+    await GoogleSignin.hasPlayServices();
+    const result = await GoogleSignin.signIn();
+    console.log("Result:", result);
+    const { idToken,user } = result;
+    console.log("IdToken:", idToken);
+    const response = await axios.post(`${API_URL}/auth/googleLogin`, {
+      idToken,user
+    });
+    if(response){
+      console.log("Response:", response.data);
+    }else{
+      console.log("No response");
+    }
+    if (response.data.error) {
+      console.log("Error:", response.data.message);
+      return { error: true, message: response.data.message };
+    }
+    setAuthState({
+      accessToken: response.data.accessToken,
+      authenticated: true,
+    });
+    if (response.data.refreshToken && response.data.accessToken) {
+      await SecureStore.setItemAsync(REFRESH_KEY, response.data.refreshToken);
+      await SecureStore.setItemAsync(ACCESS_KEY, response.data.accessToken);
+    } else console.log("No refresh token found");
+
+
+    return result;
+  } catch (error:any) {
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      alert('User cancelled the login flow!');
+    } else if (error.code === statusCodes.IN_PROGRESS) {
+      alert('Signin in progress');
+    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      alert('Google Play services not available or outdated!');
+    } else {
+      console.error(error);
+    }
+  }
+  }
 
   const value = {
     onRegister: register,
     onLogin: login,
     onLogout: logout,
+    onGoogleLogin,
     authState,
   };
 

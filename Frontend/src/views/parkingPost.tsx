@@ -97,7 +97,6 @@ export const ParkingScreen = ({
     <SafeAreaView
       style={{
         flex: 1,
-        paddingTop: 50,
         backgroundColor: theme["background-basic-color-1"],
       }}
     >

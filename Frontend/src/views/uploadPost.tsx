@@ -106,7 +106,6 @@ export const UploadPost = ({
     <SafeAreaView
       style={{
         flex: 1,
-        paddingTop: 50,
         backgroundColor: theme["background-basic-color-1"],
       }}
     >

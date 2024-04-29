@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import User from "../models/user_model";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from 'google-auth-library';
 
 interface RequestBody {
   email: string;
@@ -206,9 +207,100 @@ const logout = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const client = new OAuth2Client();
+
+async function verifyGoogleToken(token) {
+  try {
+    console.log("Verifying google token");
+    console.log("Token:", token);
+    console.log("Client:", client);
+    console.log("Client ID:", process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: [process.env.GOOGLE_CLIENT_ID_AN,process.env.GOOGLE_CLIENT_ID_WEB]
+    });
+    return { payload: ticket.getPayload() };
+  } catch (error) {
+    return { error: "Invalid user detected. Please try again" };
+  }
+}
+const googleLogin = async (req: Request, res: Response): Promise<void> => {
+  console.log("Google login route");
+  const { idToken, user } = req.body;
+  console.log("user:", user);
+
+  if (!idToken) {
+    return sendError(res, "Invalid request");
+  }
+  const googleUser = await verifyGoogleToken(idToken);
+  console.log("googleUser:", googleUser);
+  if (googleUser.error) {
+    return sendError(res, googleUser.error);
+  }
+
+  const { email, given_name, family_name, picture } = googleUser.payload;
+  if (!email || !given_name || !family_name) {
+    return sendError(res, "Missing required fields");
+  }
+  try { 
+      let existingUser = await User.findOne({ email: user.email });
+      if (!existingUser) {
+         let salt = await bcrypt.genSalt(10);
+    let hashedPassword = await bcrypt.hash(user.id, salt);
+   
+        console.log("User does not exist. Creating user");
+        const newUser = new User({
+          firstName: given_name,
+          lastName: family_name,
+          email: email,
+          passwordHash: hashedPassword,
+          profilePicture: picture || '',
+          level: 1,
+          points: 0,
+          carType: 'Hatchback',
+          tokens: []
+        });
+        
+   
+        const savedUser = await newUser.save();
+        console.log("newUser:", savedUser);
+
+        const { accessToken, refreshToken } = generateTokens(savedUser._id.toString());
+        savedUser.tokens.push(refreshToken);
+        await savedUser.save();
+        res.status(201).json({
+          message: "User created successfully",
+          data: savedUser,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          
+          userId: savedUser._id
+        });
+      } else {
+    console.log("User:", existingUser);
+      const { accessToken, refreshToken } = generateTokens(existingUser._id.toString());
+      if (existingUser.tokens) {
+        existingUser.tokens = [refreshToken];
+      } else {
+        existingUser.tokens.push(refreshToken);
+      }
+      await existingUser.save();
+      res
+        .status(200)
+        .send({ accessToken: accessToken, refreshToken: refreshToken, userId: existingUser._id});
+    }
+  }
+  catch (error) {
+    console.error("Error saving user:", error);
+    sendError(res, "Failed to create user");
+  }
+};
+
+
 export default {
   login,
   register,
   refreshToken,
   logout,
+  googleLogin
 };
