@@ -1,5 +1,7 @@
-import apiClient from "./client";
+import apiClient, { APIURL } from "./client";
 import { Post } from "../models/post_model";
+import FormData from 'form-data';
+import { date } from "yup";
 
 // Function to get all posts
 export const getPosts = async (): Promise<Post[]> => {
@@ -106,5 +108,50 @@ export const getPostsByUser = async (userId: string): Promise<Post[]> => {
   } catch (error) {
     console.error("Error fetching posts by user:", error);
     throw new Error("Error fetching posts by user");
+  }
+};
+
+// function to upload an image
+// Function to upload an image
+export const uploadImage = async (imageUri: string) => {
+  try {
+    // Initialize FormData to prepare for the HTTP POST request
+    const formData = new FormData();
+    const filename = "photo1"+Date.now().toString()+'.jpg';
+    // Append the image file to formData. Since we're working in React Native, we construct the file object from the URI.
+    formData.append('file', {
+      uri: imageUri,
+      type: 'image/jpeg', // Assuming JPEG for simplicity. This should be dynamically determined based on the file type.
+      name:filename, // Generate a unique name for the file using a timestamp to avoid naming conflicts.
+    });
+
+    // Log the file upload attempt details
+    console.log(`Uploading file: photo-${Date.now()}.jpg, Type: image/jpeg`);
+console.log("formData:", formData);
+    // Make the HTTP POST request to upload the formData
+    const response = await apiClient.post("/upload/image", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data', // Set the content type header to multipart/form-data to indicate that the request contains a file
+      },
+    }
+    );
+    
+    // Log the server's response
+    console.log("response:", response.data.message);
+
+
+    // Return the server's response message
+    return APIURL+'/uploads/'+filename;
+  } catch (error:any) {
+    // Error handling: log different types of errors based on the context
+    console.error("Error uploading image:", error);
+    if (error.response) {
+      console.error("Response error:", error.response);
+    } else if (error.request) {
+      console.error("Request was made but no response was received");
+    } else {
+      console.error("Error in setting up the request");
+    }
+    throw new Error("Error uploading image");
   }
 };

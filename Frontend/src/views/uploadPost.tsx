@@ -22,7 +22,7 @@ import {
   TopNavigationAction,
   TopNavigation,
 } from "@ui-kitten/components";
-import { createPost, updatePost } from "../api/apiPost";
+import { createPost, updatePost, uploadImage } from "../api/apiPost";
 import * as Location from "expo-location";
 import ImageOptionsModal from "../components/pickImage";
 
@@ -229,7 +229,15 @@ export const UploadPost = ({
                 </Text>
               )}
 
-              <Button style={styles.button} onPress={() => handleSubmit()}>
+              <Button
+                style={styles.button}
+                onPress={async () => {
+                  const uploadedImage = await uploadImage(image!);
+                  setImage(uploadedImage);
+                  handleSubmit();
+
+                }}
+              >
                 {post ? "Update Post" : "Create Post"}
               </Button>
             </Layout>

@@ -28,6 +28,7 @@ import {
 } from "react-native";
 import ImageOptionsModal from "../components/pickImage";
 import { CarData } from "../models/car_model";
+import { uploadImage } from "../api/apiPost";
 
 const AlertIcon = () => (
   <Icon
@@ -101,6 +102,9 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
       return;
     }
     setIsLoading(true);
+       const uploadedImage = await uploadImage(profileImage!);
+    setProfileImage(uploadedImage);
+
     console.log("Registering user, userdata: ", {
       firstName,
       lastName,
@@ -109,7 +113,7 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
       profileImage,
       selectedCar,
     });
- 
+   
     const result = await onRegister!(
       firstName,
       lastName,

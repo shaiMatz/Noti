@@ -4,6 +4,11 @@ import * as ImagePicker from 'expo-image-picker';
 import {
     Text,
   } from "@ui-kitten/components";
+import { uploadImage } from '../api/apiPost';
+
+
+
+
 const ImageOptionsModal = ({ modalVisible, setModalVisible, setProfileImage }: { modalVisible: boolean, setModalVisible: (visible: boolean) => void, setProfileImage: (image: string) => void }) => {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -73,7 +78,7 @@ const ImageOptionsModal = ({ modalVisible, setModalVisible, setProfileImage }: {
                 style={styles.button}
                 onPress={takePhoto}
               >
-                <Text style={styles.textStyle}>Take a Photo</Text>
+                <Text style={styles.textStyle}>Take joo a Photo</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

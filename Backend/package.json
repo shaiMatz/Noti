@@ -5,13 +5,14 @@
   "main": "app.js",
   "scripts": {
     "test": "shx cp .env.test .env && tsc && jest --runInBand --coverage --detectOpenHandles --forceExit",
-    "start": "tsc && node dist/Server.js",
+    "start": "tsc && node dist/src/Server.js",
     "lint": "eslint . --ext .ts",
     "devstart": "nodemon ./src/Server.ts"
   },
   "author": "Shai Matzliach",
   "license": "ISC",
   "dependencies": {
+    "@types/multer": "^1.4.11",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
@@ -19,6 +20,7 @@
     "google-auth-library": "^9.9.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.1",
+    "multer": "^1.4.5-lts.1",
     "shx": "^0.3.4"
   },
   "devDependencies": {

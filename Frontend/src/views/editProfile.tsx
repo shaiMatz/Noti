@@ -21,6 +21,7 @@ import { CarData } from "../models/car_model";
 import ImageOptionsModal from "../components/pickImage";
 import { IUser } from "../models/user_model";
 import { editUser } from "../api/apiUser";
+import { uploadImage } from "../api/apiPost";
 
 const AddIcon = () => (
   <Icon style={styles.smallIcon} fill="#000" name="plus-outline" />
@@ -66,10 +67,14 @@ const scrollViewRef = useRef<ScrollView>(null);
 
   const carData = CarData;
 
-  const saveProfile = () => {
+  const saveProfile =async () => {
     // Implement save functionality
     console.log("Profile saved", { fname, lname, email, profileImage });
     setIsLoading(true);
+    console.log("Profile image", profileImage)
+   const uploadedImage = await uploadImage(profileImage!);
+    setProfileImage(uploadedImage);
+
     editUser({
       firstName: fname,
       lastName: lname,
