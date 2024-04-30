@@ -13,8 +13,54 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage });
 
+/**
+ * @swagger
+ * tags:
+ *   name: Uploads
+ *   description: File upload operations
+ */
+
+/**
+ * @swagger
+ * /upload/image:
+ *   post:
+ *     summary: Uploads an image file
+ *     tags: [Uploads]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image file to upload
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: File uploaded successfully
+ *       400:
+ *         description: No file uploaded or error in upload process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: No file uploaded
+ */
 router.post("/image",upload.single("file"), (req, res) => {
-    console.log("upload, req: ", req);   
+    console.log("uploading file");   
     if (!req.file) {
           // If no file is uploaded, return an error response
           return res.status(400).json({ message: "No file uploaded" });

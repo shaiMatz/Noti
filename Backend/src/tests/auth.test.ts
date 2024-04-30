@@ -103,4 +103,29 @@ describe("User Auth Test", () => {
     expect(res.statusCode).toEqual(200);
   });
 
+
+
+  test("Google login with invalid token", async () => {
+    const googleToken = "invalidgoogletoken";
+    const res = await request(app).post("/auth/googleLogin").send({
+      token: googleToken,
+    });
+    expect(res.statusCode).toEqual(400);
+  });
+
+   test("Database error during registration", async () => {
+    // Assuming there's a way to simulate a database error
+    jest.spyOn(User, 'findOne').mockRejectedValue(new Error("Database error"));
+    const res = await request(app).post("/auth/register").send(user);
+    expect(res.statusCode).toEqual(400);
+  });
+
+  test("Database error during login", async () => {
+    jest.spyOn(User, 'findOne').mockRejectedValue(new Error("Database error"));
+    const res = await request(app).post("/auth/login").send({
+      email: user.email,
+      password: user.password
+    });
+    expect(res.statusCode).toEqual(400);
+  });
 });

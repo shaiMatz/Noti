@@ -111,7 +111,6 @@ export const getPostsByUser = async (userId: string): Promise<Post[]> => {
   }
 };
 
-// function to upload an image
 // Function to upload an image
 export const uploadImage = async (imageUri: string) => {
   try {

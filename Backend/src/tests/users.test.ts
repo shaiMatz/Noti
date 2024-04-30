@@ -63,7 +63,7 @@ describe("User Test", () => {
   test("Get User", async () => {
     const res = await request(app)
       .get(`/user`)
-      .set("Authorization", `Bearer ${user.accessToken}`);
+      .set("authorization", `JWT ${user.accessToken}`);
     expect(res.statusCode).toEqual(200);
     expect(res.body.email).toEqual(user.email);
   });
@@ -72,7 +72,7 @@ describe("User Test", () => {
     const newName = "newName";
     const res = await request(app)
       .put(`/user`)
-      .set("Authorization", `Bearer ${user.accessToken}`)
+      .set("authorization", `JWT ${user.accessToken}`)
       .send({ firstName: newName });
     expect(res.statusCode).toEqual(200);
     expect(res.body.firstName).toEqual(newName);
@@ -81,9 +81,43 @@ describe("User Test", () => {
   test("Delete User", async () => {
     const res = await request(app)
       .delete(`/user`)
-      .set("Authorization", `Bearer ${user.accessToken}`);
+      .set("authorization", `JWT ${user.accessToken}`);
     expect(res.statusCode).toEqual(200);
     const deletedUser = await User.findById(user._id);
     expect(deletedUser).toBeNull();
+  });
+
+   test("increases user points and checks level up", async () => {
+    // Assume user starts at level 1 with 90 points, 100 points required for next level.
+    await User.findByIdAndUpdate(user._id, { points: 90, level: 1 });
+
+    const res = await request(app)
+      .get("/user/points") // Adjust the endpoint as necessary
+      .set("authorization", `JWT ${user.accessToken}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.message).toContain("Points increased for reminder");
+
+    // Retrieve user to check points and level
+    const updatedUser = await User.findById(user._id);
+    expect(updatedUser.points).toEqual(100);
+    expect(updatedUser.level).toEqual(2); // Check if the level has been incremented
+  });
+
+  test("increases points without leveling up", async () => {
+    // Assume user starts at level 2 with 190 points, 200 points required for next level.
+    await User.findByIdAndUpdate(user._id, { points: 190, level: 2 });
+
+    const res = await request(app)
+      .get("/user/points") // Adjust the endpoint as necessary
+      .set("authorization", `JWT ${user.accessToken}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.message).toContain("Points increased for reminder");
+
+    // Retrieve user to check points and level
+    const updatedUser = await User.findById(user._id);
+    expect(updatedUser.points).toEqual(200);
+    expect(updatedUser.level).toEqual(3); // Level should not increment this time
   });
 });

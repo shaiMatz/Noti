@@ -46,7 +46,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
     });
     const savedUser = await newUser.save();
     console.log("newUser:", savedUser);
-    res.status(201).json({
+    res.status(200).json({
       message: "User created successfully",
       data: savedUser
     });
@@ -268,7 +268,7 @@ const googleLogin = async (req: Request, res: Response): Promise<void> => {
         const { accessToken, refreshToken } = generateTokens(savedUser._id.toString());
         savedUser.tokens.push(refreshToken);
         await savedUser.save();
-        res.status(201).json({
+        res.status(200).json({
           message: "User created successfully",
           data: savedUser,
           accessToken: accessToken,

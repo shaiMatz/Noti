@@ -68,7 +68,7 @@ class postController extends createController<IPost> {
         // Save the updated user
         await user.save();
       }
-      res.status(201).json(newPost);
+      res.status(200).json(newPost);
       console.log("Post created successfully: ", newPost);
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });

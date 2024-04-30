@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import User, { IUser } from "../models/user_model";
 import Post, { IPost } from "../models/post_model";
 import init from "../app";
+import fs from 'fs';
 
 // Define the types for user credentials and tokens
 type TestUser = {
@@ -71,7 +72,7 @@ describe("Post Test", () => {
         longitude: -74.0060,
         latitude: 40.7128
       });
-    expect(res.statusCode).toEqual(201);
+    expect(res.statusCode).toEqual(200);
   });
 
   test("Get Posts", async () => {
@@ -101,14 +102,22 @@ describe("Post Test", () => {
     expect(res.statusCode).toEqual(200);
   });
 
-  test("Get Post By Location", async () => {
+test("Get Post By Location", async () => {
     console.log("get post by location test");
-    const accessToken =user.accessToken;
+    const accessToken = user.accessToken;
+    const locationData = {
+      longitude: "-122.4194",  // Example longitude for San Francisco
+      latitude: "37.7749"      // Example latitude for San Francisco
+    };
     const res = await request(app)
-    .get(`/post/location?longitude=-74.0060&latitude=40.7128`)
-    .set("authorization", "JWT " + accessToken);
+      .post("/post/location")  // Changed to post to match the updated route handling
+      .set("authorization", `JWT ${accessToken}`)
+      .send(locationData);     // Sending longitude and latitude in the request body
+
     expect(res.statusCode).toEqual(200);
-  });
+    expect(res.body).toBeInstanceOf(Array);  // Ensuring that an array of posts is returned
+    console.log("Posts retrieved by location: ", res.body);
+});
   test("Delete Post", async () => {
     console.log("delete post test");
     const accessToken =user.accessToken;
@@ -118,5 +127,22 @@ describe("Post Test", () => {
       .set("authorization", "JWT " + accessToken);
     expect(res.statusCode).toEqual(200);
   });
+
+});
+
+describe("File Upload Routes", () => {
+  test("upload file", async () => {
+    console.log("Upload Photo Test Start:");
+    const filePath = `${__dirname}/car1.png`;
+    const rs = await fs.existsSync(filePath);
+    if (rs) {
+      const response = await request(app)
+        .post("/upload/image")
+        .attach("file", filePath);
+      expect(response.statusCode).toEqual(200);
+    }
+  });
+
+
 
 });
