@@ -379,9 +379,12 @@ export const HomeScreen = ({ navigation, route }: { navigation: any; route: any 
             </>
           ) : (
             <>
-              <Text category="h5" style={{ marginBottom: 5 }}>
+              <Text category="h5" style={{ marginBottom: 5,textAlign:'center' }}>
                 Don't forget to close Pango!
               </Text>
+               <View
+                style={{ display: "flex", flexDirection: "row", marginTop: 20 }}
+              >
               <Button size="small" onPress={handleClosePango}>
                 Open Pango
               </Button>
@@ -392,6 +395,7 @@ export const HomeScreen = ({ navigation, route }: { navigation: any; route: any 
               >
                 Close
               </Button>
+              </View>
             </>
           )}
         </View>

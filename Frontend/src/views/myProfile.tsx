@@ -37,7 +37,7 @@ const PointsIcon = (props: any) => (
   <Icon {...props} fill={"#fff"} name="award-outline" />
 );
 const BackIcon = (props: any) => (
-  <Icon {...props} fill={"#fff"} name="arrow-back" />
+  <Icon {...props} fill={"#000"} name="arrow-back" />
 );
 const carType = CarData;
 export const MyProfile = ({
@@ -69,7 +69,7 @@ export const MyProfile = ({
   const MenuIcon = (props: any): IconElement => (
     <Icon
       style={{ width: 15, height: 15, marginRight: 5 }}
-      fill="#fff"
+      fill="#000"
       name="more-vertical"
     />
   );
@@ -139,7 +139,7 @@ export const MyProfile = ({
               title={(evaProps) => (
                 <Text
                   {...evaProps}
-                  style={[evaProps?.style, { color: "white" }]}
+                  style={[evaProps?.style, ]}
                 >
                   My Profile
                 </Text>

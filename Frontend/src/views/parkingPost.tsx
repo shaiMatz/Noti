@@ -11,6 +11,7 @@ import {
   List,
   useTheme,
   AnimationConfig,
+  Spinner,
 } from "@ui-kitten/components";
 import * as Location from "expo-location";
 import { getPostsByLocation } from "../api/apiPost";
@@ -80,10 +81,10 @@ export const ParkingScreen = ({
     <TopNavigationAction icon={BackIcon} onPress={navigateBack} />
   );
 
-    const deletePost = async (postId: string) => {
-      const newPosts = posts.filter((post) => post._id !== postId);
-      setPosts(newPosts);
-    };
+  const deletePost = async (postId: string) => {
+    const newPosts = posts.filter((post) => post._id !== postId);
+    setPosts(newPosts);
+  };
   const renderItem = ({ item }: { item: Post }) => (
     <PostComponent
       item={item}
@@ -108,7 +109,9 @@ export const ParkingScreen = ({
       <Divider />
       <Layout style={styles.container}>
         {loading ? (
-          <Text category="h6">Loading...</Text>
+          <Layout style={styles.noPost}>
+          <Spinner size="giant" />
+          </Layout>
         ) : posts.length > 0 ? (
           <List
             data={posts}
@@ -116,7 +119,10 @@ export const ParkingScreen = ({
             keyExtractor={(item, index) => item._id || `post-${index}`}
           />
         ) : (
-          <Text category="p1">No posts found in this location.</Text>
+          <Layout style={styles.noPost}>
+
+            <Text category="p1">No posts found in this location.</Text>
+          </Layout>
         )}
       </Layout>
     </SafeAreaView>
@@ -134,5 +140,10 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 200,
+  },
+  noPost: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

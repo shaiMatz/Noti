@@ -1,5 +1,5 @@
 import React, { useState, FC, useEffect, ReactElement } from "react";
-import {useAuth} from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import {
   AnimationConfig,
   Button,
@@ -20,7 +20,7 @@ import {
 import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 
 const AlertIcon = (): IconElement => (
-  <Icon style={{width:15,height:15,marginRight:5}} fill="#8F9BB3" name="alert-circle-outline" />
+  <Icon style={{ width: 15, height: 15, marginRight: 5 }} fill="#8F9BB3" name="alert-circle-outline" />
 );
 
 
@@ -33,7 +33,7 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
   const [Email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const {onLogin, onGoogleLogin} = useAuth();
+  const { onLogin, onGoogleLogin } = useAuth();
 
   const toggleSecureEntry = (): void => {
     setSecureTextEntry(!secureTextEntry);
@@ -58,42 +58,45 @@ export const Login = ({ navigation }: { navigation: any }): IconElement => {
     );
   };
   //login function
-  const login = async() => {
-    console.log("Login function");
-    const result = await onLogin!(Email, password);
-    console.log("Result: ",result);
-    if(!result.error){
-      console.log("Login successful, userId: ",result.userId);
-      
+  const login = async () => {
+    try {
+      console.log("Login function");
+      const result = await onLogin!(Email, password);
+      console.log("Result: ", result);
+      if (!result.error) {
+        console.log("Login successful, userId: ", result.userId);
+
+        navigation.navigate({
+          name: 'Home',
+          merge: true,
+        });
+      }
+      else {
+        console.log("Login failed");
+        alert("Login failed: " + result.message);
+      }
+    } catch (e) {
+      console.log("Error: ", e);
+    }
+  };
+
+
+  const onGoogleButtonPress = async () => {
+    const res = await onGoogleLogin!()
+    console.log("res: ", res);
+    if (!res.error) {
+      console.log("Login successful, userId: ", res.userId);
+
       navigation.navigate({
         name: 'Home',
         merge: true,
       });
     }
-    else{
+    else {
       console.log("Login failed");
-      alert("Login failed: "+result.message);
+      alert("Login failed: " + res.message);
     }
-
   };
-
-
-const onGoogleButtonPress = async () => {
-  const res =await onGoogleLogin!()
-  console.log("res: ", res);
-  if(!res.error){
-    console.log("Login successful, userId: ",res.userId);
-    
-    navigation.navigate({
-      name: 'Home',
-      merge: true,
-    });
-  }
-  else{
-    console.log("Login failed");
-    alert("Login failed: "+res.message);
-  }
-};
 
 
   return (
@@ -152,14 +155,14 @@ const onGoogleButtonPress = async () => {
           </View>
 
           <View>
-           <GoogleSigninButton
-  size={GoogleSigninButton.Size.Wide}
-  color={GoogleSigninButton.Color.Dark}
-  onPress={() => {
-    onGoogleButtonPress();
-  }}
-  style={styles.btn2}
-/>
+            <GoogleSigninButton
+              size={GoogleSigninButton.Size.Wide}
+              color={GoogleSigninButton.Color.Dark}
+              onPress={() => {
+                onGoogleButtonPress();
+              }}
+              style={styles.btn2}
+            />
           </View>
         </View>
         <View style={styles.signup_contaiter}>

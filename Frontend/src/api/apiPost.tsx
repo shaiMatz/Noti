@@ -116,11 +116,13 @@ export const uploadImage = async (imageUri: string) => {
   try {
     // Initialize FormData to prepare for the HTTP POST request
     const formData = new FormData();
-    const filename = "photo1"+Date.now().toString()+'.jpg';
+    const uriParts = imageUri.split('.');
+    const fileType = uriParts[uriParts.length - 1];
+    const filename = "photo"+Date.now().toString()+"."+fileType;
     // Append the image file to formData. Since we're working in React Native, we construct the file object from the URI.
     formData.append('file', {
       uri: imageUri,
-      type: 'image/jpeg', // Assuming JPEG for simplicity. This should be dynamically determined based on the file type.
+      type: `image/${fileType}`, // Assuming JPEG for simplicity. This should be dynamically determined based on the file type.
       name:filename, // Generate a unique name for the file using a timestamp to avoid naming conflicts.
     });
 

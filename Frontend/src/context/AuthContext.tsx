@@ -37,9 +37,11 @@ export const AuthProvider = ({ children }: any) => {
   const [authState, setAuthState] = useState<{
     accessToken: string | null;
     authenticated: boolean | null;
+    isGoogleSignin: boolean | null;
   }>({
     accessToken: null,
     authenticated: null,
+    isGoogleSignin: null,
   });
   // Setup Axios Interceptors
   useEffect(() => {
@@ -96,14 +98,14 @@ useEffect(() => {
 
   useEffect(() => {
     const loadToken = async () => {
-
-      const accessToken = await SecureStore.getItemAsync(ACCESS_KEY);
+       const accessToken = await SecureStore.getItemAsync(ACCESS_KEY);
 
       if (accessToken!=null) {
 
         setAuthState({
           accessToken,
           authenticated: true,
+          isGoogleSignin: false,
         });
         apiClient.defaults.headers.common[
           "authorization"
@@ -113,6 +115,7 @@ useEffect(() => {
         setAuthState({
           accessToken: null,
           authenticated: false,
+          isGoogleSignin: null,
         });
         await SecureStore.deleteItemAsync(REFRESH_KEY);
         await SecureStore.deleteItemAsync(ACCESS_KEY);
@@ -172,6 +175,7 @@ useEffect(() => {
       setAuthState({
         accessToken: data.accessToken,
         authenticated: true,
+        isGoogleSignin: false,
       });
       if (data.refreshToken && data.accessToken) {
         await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
@@ -191,6 +195,10 @@ useEffect(() => {
 
   const logout = async () => {
     try {
+      if(authState.isGoogleSignin){
+        await GoogleSignin.revokeAccess();
+        await GoogleSignin.signOut();
+      }
       const refreshkey = await SecureStore.getItemAsync(REFRESH_KEY);
       console.log("Logging out: " + authState.accessToken);
       console.log("Logging out: " + refreshkey);
@@ -208,6 +216,7 @@ useEffect(() => {
         setAuthState({
           accessToken: null,
           authenticated: false,
+          isGoogleSignin: null,
         });
 
         delete apiClient.defaults.headers.common["authorization"];
@@ -252,10 +261,11 @@ useEffect(() => {
       await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
       await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
       apiClient.defaults.headers.common["authorization"] = `JWT ${accessToken}`;
-
+      const google=authState.isGoogleSignin;
       setAuthState({
         accessToken,
         authenticated: true,
+        isGoogleSignin: google,
       });
       return accessToken;
     } catch (error) {
@@ -287,6 +297,7 @@ try {
     setAuthState({
       accessToken: response.data.accessToken,
       authenticated: true,
+      isGoogleSignin: true,
     });
     if (response.data.refreshToken && response.data.accessToken) {
       await SecureStore.setItemAsync(REFRESH_KEY, response.data.refreshToken);

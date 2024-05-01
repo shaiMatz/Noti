@@ -36,6 +36,10 @@ async function requestNotificationPermissions() {
 
 }
 
+export async function unScheduleNotification() {
+  console.log("Unscheduling notification...");
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}
 // Function to schedule a notification
 export async function scheduleNotification() {
   console.log("Scheduling notification...");

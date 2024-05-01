@@ -13,6 +13,7 @@ import {
   AnimationConfig,
   OverflowMenu,
   MenuItem,
+  Spinner,
 } from "@ui-kitten/components";
 import * as Location from "expo-location";
 import { deletePost, getPostsByUser } from "../api/apiPost";
@@ -50,7 +51,7 @@ export const ParkingHistory = ({
     try {
       console.log("Fetching posts by user");
       const fetchedPosts = await getPostsByUser(userId);
-      
+
       setPosts(fetchedPosts);
       setLoading(false);
     } catch (error) {
@@ -75,7 +76,7 @@ export const ParkingHistory = ({
   const deletePost = async (postId: string) => {
     const newPosts = posts.filter((post) => post._id !== postId);
     setPosts(newPosts);
-    }
+  }
 
   const renderItem = ({ item }: { item: Post }) => (
     <PostComponent
@@ -101,15 +102,20 @@ export const ParkingHistory = ({
       <Divider />
       <Layout style={styles.container}>
         {loading ? (
-          <Text category="h6">Loading...</Text>
-        ) : posts.length > 0 ? (
-          <List
-            data={posts}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => item._id || `post-${index}`}
-          />
-        ) : (
-          <Text category="p1">No posts found.</Text>
+          <Layout style={styles.noPost}>
+            <Spinner size="giant" />
+          </Layout>) : posts.length > 0 ? (
+            <List
+              data={posts}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => item._id || `post-${index}`}
+            />
+          ) : (
+
+          <Layout style={styles.noPost}>
+
+            <Text category="p1">No posts found.</Text>
+          </Layout>
         )}
       </Layout>
     </SafeAreaView>
@@ -120,5 +126,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+  },
+  noPost: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
