@@ -82,13 +82,6 @@ export const MyProfile = ({
     />
   );
 
-  const DeleteIcon = (props: any): IconElement => (
-    <Icon
-      style={{ width: 15, height: 15, marginRight: 5 }}
-      fill="#8F9BB3"
-      name="person-delete-outline"
-    />
-  );
   const BackAction = () => (
     <TopNavigationAction icon={BackIcon} onPress={navigateBack} />
   );
@@ -119,7 +112,6 @@ export const MyProfile = ({
           navigation.navigate("EditProfile", { user: user });
         }}
       />
-      <MenuItem accessoryLeft={DeleteIcon} title="Delete Profile" />
     </OverflowMenu>
   );
 

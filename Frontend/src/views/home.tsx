@@ -159,7 +159,10 @@ export const HomeScreen = ({ navigation, route }: { navigation: any; route: any 
     } else if (actionIdentifier === "turn-off-action") {
       // User tapped on 'Turn Off Now' action
       console.log("Turn Off Now action button tapped, stopping timer...");
-      handleReminderToggle(); // Implement this as well
+      if (reminderSet) {
+        handleReminderToggle();
+      }
+       // Implement this as well
     }
     // Add more actions as needed
   });

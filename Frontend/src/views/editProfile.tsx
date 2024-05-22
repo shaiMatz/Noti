@@ -22,6 +22,7 @@ import ImageOptionsModal from "../components/pickImage";
 import { IUser } from "../models/user_model";
 import { editUser } from "../api/apiUser";
 import { uploadImage } from "../api/apiPost";
+import { set } from "date-fns";
 
 const AddIcon = () => (
   <Icon style={styles.smallIcon} fill="#000" name="plus-outline" />
@@ -49,13 +50,16 @@ export const EditProfile = ({
   const [profileImage, setProfileImage] = useState<string | null>(
     user.profilePicture
   );
+  const [oldprofileImage, setoldProfileImage] = useState<string | null>(
+    user.profilePicture
+  );
   const [carType, setCarType] = useState(user.carType);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+console.log("User", user)
 
-
-const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const navigateBack = () => {
     navigation.navigate("MyProfile", { user });
@@ -67,14 +71,27 @@ const scrollViewRef = useRef<ScrollView>(null);
 
   const carData = CarData;
 
-  const saveProfile =async () => {
+  const saveProfile = async () => {
     // Implement save functionality
-    console.log("Profile saved", { fname, lname, email, profileImage });
+    console.log("Profile saved", { fname, lname, email, profileImage, carType});
     setIsLoading(true);
     console.log("Profile image", profileImage)
-   const uploadedImage = await uploadImage(profileImage!);
-    setProfileImage(uploadedImage);
+    if (profileImage) {
+      if (profileImage != oldprofileImage) {
+        const uploadedImage = await uploadImage(profileImage!);
+        setProfileImage(uploadedImage);
+        setoldProfileImage(uploadedImage);
+        console.log("Uploaded image", uploadedImage);
+      }else{
+        console.log("No image uploaded")
+      }
 
+    }
+    else {
+      setProfileImage(require("../../assets/default_avatar.png"));
+      console.log("No image uploaded, using default image")
+    }
+    console.log("Profile image", profileImage)
     editUser({
       firstName: fname,
       lastName: lname,
@@ -102,6 +119,7 @@ const scrollViewRef = useRef<ScrollView>(null);
   );
 
   const ProfileImage = () => (
+    console.log("Profile image", profileImage),
     <TouchableOpacity onPress={() => setModalVisible(true)}>
       {profileImage ? (
         <Image source={{ uri: profileImage }} style={styles.profileImage} />
@@ -114,9 +132,9 @@ const scrollViewRef = useRef<ScrollView>(null);
 
   const handleCarTypeSelect = (id: string) => {
     setCarType(id);
- if (scrollViewRef.current) {
-   scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
- }
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
+    }
   };
 
   return (
@@ -191,7 +209,7 @@ const scrollViewRef = useRef<ScrollView>(null);
                     style={styles.carTypeImage}
                     resizeMode="contain"
                   />
-                    <Text style={styles.carTypeText}>{car.label}</Text>
+                  <Text style={styles.carTypeText}>{car.label}</Text>
                 </TouchableOpacity>
               ))}
           </ScrollView>
@@ -340,7 +358,7 @@ const styles = StyleSheet.create({
   carTypeText: {
     fontSize: 16,
   },
- 
+
 });
 
 export default EditProfile;

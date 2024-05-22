@@ -47,6 +47,7 @@ export const UploadPost = ({
 }) => {
   const post = route.params?.post;
   const [image, setImage] = useState<string | null>(post?.image || null);
+  const [oldimage, setoldImage] = useState<string | null>(post?.image || null);
   const [location, setLocation] = useState<Location.LocationObject>();
   const [locationName, setLocationName] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -232,8 +233,13 @@ export const UploadPost = ({
               <Button
                 style={styles.button}
                 onPress={async () => {
+                  if(image) {
+                    if(oldimage!=image){
                   const uploadedImage = await uploadImage(image!);
                   setImage(uploadedImage);
+                      setoldImage(uploadedImage);
+                    }
+                  }
                   handleSubmit();
 
                 }}

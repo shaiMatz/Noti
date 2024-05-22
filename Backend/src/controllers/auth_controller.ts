@@ -13,6 +13,7 @@ interface RequestBody {
 
 const register = async (req: Request, res: Response): Promise<void> => {
   console.log("Register route");
+  console.log("Body:", req.body);
   const { email, password, firstName, lastName, profilePicture, carType } = req.body;
 
   if (!email || !password || !firstName || !lastName) {
@@ -29,7 +30,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
     return sendError(res);
   }
   
-  console.log("user:", email, password, firstName, lastName);
+  console.log("user:", email, password, firstName, lastName, profilePicture, carType);
   try {
     let salt = await bcrypt.genSalt(10);
     let hashedPassword = await bcrypt.hash(password, salt);

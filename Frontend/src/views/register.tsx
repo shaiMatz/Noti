@@ -102,9 +102,13 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
       return;
     }
     setIsLoading(true);
+    if(profileImage){
        const uploadedImage = await uploadImage(profileImage!);
     setProfileImage(uploadedImage);
-
+    }
+    else{
+      setProfileImage("../../assets/default_avatar.png");
+    }
     console.log("Registering user, userdata: ", {
       firstName,
       lastName,

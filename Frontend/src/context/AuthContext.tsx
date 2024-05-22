@@ -131,16 +131,17 @@ useEffect(() => {
     lastName: string,
     email: string,
     password: string,
-    profileImage: string = "../../assets/default_avatar.png",
+    profilePicture: string = "../../assets/default_avatar.png",
     carType: string = "Unknown"
   ) => {
     try {
+      console.log("Registering, profile image:", profilePicture);
       const { data } = await apiClient.post(`${API_URL}/auth/register`, {
         firstName,
         lastName,
         email,
         password,
-        profileImage,
+        profilePicture,
         carType,
       });
 
