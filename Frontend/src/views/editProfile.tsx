@@ -57,7 +57,7 @@ export const EditProfile = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-console.log("User", user)
+  console.log("User", user)
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -73,30 +73,36 @@ console.log("User", user)
 
   const saveProfile = async () => {
     // Implement save functionality
-    console.log("Profile saved", { fname, lname, email, profileImage, carType});
+    console.log("Profile saved", { fname, lname, email, profileImage, carType });
     setIsLoading(true);
-    console.log("Profile image", profileImage)
-    if (profileImage) {
-      if (profileImage != oldprofileImage) {
-        const uploadedImage = await uploadImage(profileImage!);
-        setProfileImage(uploadedImage);
-        setoldProfileImage(uploadedImage);
-        console.log("Uploaded image", uploadedImage);
-      }else{
-        console.log("No image uploaded")
-      }
+    let finalProfileImage = profileImage;
 
-    }
-    else {
-      setProfileImage(require("../../assets/default_avatar.png"));
+    console.log("Profile image", profileImage)
+    if (profileImage && profileImage !== oldprofileImage) {
+      await uploadImage(profileImage!)
+        .then((res) => {
+          console.log("Uploaded image", res);
+          finalProfileImage = res;
+          setoldProfileImage(res);
+          setProfileImage(res);
+
+          console.log("Old profile image after update", oldprofileImage)
+          console.log("Profile image after update", profileImage)
+        })
+        .catch((error) => {
+          console.log("Error uploading image", error);
+        });
+    } else if (!profileImage) {
+      finalProfileImage = "";
       console.log("No image uploaded, using default image")
     }
-    console.log("Profile image", profileImage)
+
+    console.log("Profile image after save", finalProfileImage)
     editUser({
       firstName: fname,
       lastName: lname,
       email,
-      profilePicture: profileImage || "../../assets/default_avatar.png",
+      profilePicture: finalProfileImage || "",
       carType: carType,
     })
       .then((res) => {
@@ -109,6 +115,7 @@ console.log("User", user)
         console.log("Error saving profile", error);
       });
   };
+
   const ImagePlaceholder = () => (
     <TouchableOpacity
       style={styles.profilePlaceholder}

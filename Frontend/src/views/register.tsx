@@ -102,30 +102,40 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
       return;
     }
     setIsLoading(true);
-    if(profileImage){
-       const uploadedImage = await uploadImage(profileImage!);
-    setProfileImage(uploadedImage);
+    let finalProfileImage = profileImage;
+
+    if (profileImage) {
+      try {
+        const uploadedImage = await uploadImage(profileImage!);
+        finalProfileImage = uploadedImage;
+      } catch (error) {
+        console.log("Error uploading image", error);
+        Alert.alert("Image Upload Failed", "Failed to upload profile image.");
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      finalProfileImage = "";
     }
-    else{
-      setProfileImage("../../assets/default_avatar.png");
-    }
+
     console.log("Registering user, userdata: ", {
       firstName,
       lastName,
       email,
       password,
-      profileImage,
+      profileImage: finalProfileImage,
       selectedCar,
     });
-   
+
     const result = await onRegister!(
       firstName,
       lastName,
       email,
       password,
-      profileImage ? profileImage : "../../assets/default_avatar.png",
+      finalProfileImage,
       selectedCar
     );
+
     setIsLoading(false);
 
     if (result.error) {
@@ -134,6 +144,7 @@ export const SignUp = ({ navigation }: { navigation: any }): IconElement => {
       login();
     }
   };
+
 
   
   const ImagePlaceholder = () => (

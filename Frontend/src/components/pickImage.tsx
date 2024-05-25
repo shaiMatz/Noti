@@ -78,7 +78,7 @@ const ImageOptionsModal = ({ modalVisible, setModalVisible, setProfileImage }: {
                 style={styles.button}
                 onPress={takePhoto}
               >
-                <Text style={styles.textStyle}>Take joo a Photo</Text>
+                <Text style={styles.textStyle}>Take a Photo</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

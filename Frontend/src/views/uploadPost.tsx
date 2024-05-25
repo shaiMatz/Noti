@@ -233,11 +233,17 @@ export const UploadPost = ({
               <Button
                 style={styles.button}
                 onPress={async () => {
-                  if(image) {
-                    if(oldimage!=image){
-                  const uploadedImage = await uploadImage(image!);
-                  setImage(uploadedImage);
+                  let finalImage = image;
+                  if (image && oldimage !== image) {
+                    try {
+                      const uploadedImage = await uploadImage(image!);
+                      finalImage = uploadedImage;
+                      setImage(uploadedImage);
                       setoldImage(uploadedImage);
+                    } catch (error) {
+                      console.error("Error uploading image:", error);
+                      Alert.alert("Image Upload Failed", "Failed to upload image. Please try again.");
+                      return;
                     }
                   }
                   handleSubmit();

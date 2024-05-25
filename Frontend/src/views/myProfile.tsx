@@ -63,6 +63,7 @@ export const MyProfile = ({
     user && user.profilePicture !== ""
       ? { uri: user.profilePicture }
       : require("../../assets/default_avatar.png"); // Directly use require for static images
+  console.log(userModel);
   const navigateBack = () => {
     navigation.navigate("Home", { user });
   };
